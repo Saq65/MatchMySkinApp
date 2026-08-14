@@ -1,0 +1,23 @@
+// Matched from matchmyskin.roopsee.com: cream background, near-black text,
+// magenta/pink accent, lavender secondary panel, sage green for active pills.
+export const colors = {
+  background: '#F7F1E6',
+  surface: '#FFFFFF',
+  border: '#DDD3C2',
+  text: '#1A1A1A',
+  textMuted: '#736C60',
+  primary: '#D6178A',
+  primaryDark: '#AD1370',
+  primarySoft: '#F6D9EC',
+  selectedBorder: '#1A1A1A',
+  progressTrack: '#E4DACA',
+  tabInactive: '#B0A796',
+  danger: '#C0392B',
+  star: '#F2B84B',
+  lavender: '#E4D7E8',
+  sage: '#A9C0A0',
+  scoreGreat: '#5BA35B',
+  scoreGood: '#E0A83C',
+  scoreFair: '#D98A4A',
+  scoreCaution: '#C0392B',
+};
