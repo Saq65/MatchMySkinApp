@@ -7,6 +7,7 @@ import {
   Easing,
   LayoutChangeEvent,
 } from 'react-native'
+import { rf, rh, rw } from '../theme/responsive'
 
 const announcements = [
   'Free Registration',
@@ -98,18 +99,18 @@ const styles = StyleSheet.create({
   item: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 8,
-    paddingHorizontal: 10,
-    paddingVertical: 4,
+    gap: rw(8),
+    paddingHorizontal: rw(10),
+    paddingVertical: rh(4),
   },
   text: {
     color: '#fff',
-    fontSize: 9,
+    fontSize: rf(9),
     fontWeight: '600',
     textTransform: 'uppercase',
   },
   dot: {
     color: '#fff',
-    fontSize: 9,
+    fontSize: rf(9),
   },
 })

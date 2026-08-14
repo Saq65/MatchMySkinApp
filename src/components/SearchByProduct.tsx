@@ -1,20 +1,23 @@
 import { Image, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { colors } from '../theme/colors';
+import { rf, rw } from '../theme/responsive';
 import { radii, spacing } from '../theme/spacing';
 
-// Matched to the real category facets from /retailer-products/facets.
+// Matched to the real product_type values in the scored catalog (/recommend).
+// "Eye Cream" and "Lip Balm" have no matching product_type there yet — they'll
+// start working on their own once that data exists, rather than faking it.
 const CATEGORIES = [
-  { label: 'Cleanser', category: 'Cleansers', image: require('../assets/Shopbyproducts/p1.png') },
-  { label: 'Toner', category: 'Shop Toners & Mists', image: require('../assets/Shopbyproducts/p2.png') },
-  { label: 'Serum', category: 'Serums', image: require('../assets/Shopbyproducts/p3.png') },
-  { label: 'Moisturiser', category: 'Moisturizers', image: require('../assets/Shopbyproducts/p4.png') },
-  { label: 'Mask', category: 'Masks', image: require('../assets/Shopbyproducts/p5.png') },
-  { label: 'Eye Cream', category: 'Eye Care', image: require('../assets/Shopbyproducts/p6.png') },
-  { label: 'Lip Balm', category: 'Lip Care', image: require('../assets/Shopbyproducts/p7.png') },
+  { label: 'Cleanser', productType: 'Cleanser', image: require('../assets/Shopbyproducts/p1.png') },
+  { label: 'Toner', productType: 'Toner', image: require('../assets/Shopbyproducts/p2.png') },
+  { label: 'Serum', productType: 'Serum', image: require('../assets/Shopbyproducts/p3.png') },
+  { label: 'Moisturiser', productType: 'Moisturiser', image: require('../assets/Shopbyproducts/p4.png') },
+  { label: 'Mask', productType: 'Mask', image: require('../assets/Shopbyproducts/p5.png') },
+  { label: 'Eye Cream', productType: 'Eye Cream', image: require('../assets/Shopbyproducts/p6.png') },
+  { label: 'Lip Balm', productType: 'Lip Balm', image: require('../assets/Shopbyproducts/p7.png') },
 ];
 
 type Props = {
-  onSelect: (category: string) => void;
+  onSelect: (productType: string) => void;
 };
 
 export function SearchByProduct({ onSelect }: Props) {
@@ -28,16 +31,16 @@ export function SearchByProduct({ onSelect }: Props) {
       >
         {CATEGORIES.map(item => (
           <TouchableOpacity
-            key={item.category}
+            key={item.productType}
             style={styles.card}
-            onPress={() => onSelect(item.category)}
+            onPress={() => onSelect(item.productType)}
             activeOpacity={0.85}
           >
             <Image source={item.image} style={styles.image} resizeMode="cover" />
             <View style={styles.labelWrap}>
-              <Text style={styles.label} numberOfLines={1}>
+              {/* <Text style={styles.label} numberOfLines={1}>
                 {item.label}
-              </Text>
+              </Text> */}
             </View>
           </TouchableOpacity>
         ))}
@@ -48,10 +51,10 @@ export function SearchByProduct({ onSelect }: Props) {
 
 const styles = StyleSheet.create({
   container: {
-    marginBottom: spacing.lg,
+    marginTop: spacing.sm,
   },
   heading: {
-    fontSize: 18,
+    fontSize: rf(18),
     fontWeight: '800',
     color: colors.text,
     textAlign: 'center',
@@ -62,8 +65,8 @@ const styles = StyleSheet.create({
     gap: spacing.sm,
   },
   card: {
-    width: 108,
-    height: 130,
+    width: rw(108),
+    height: rw(130),
     borderRadius: radii.lg,
     overflow: 'hidden',
     backgroundColor: colors.primarySoft,
@@ -78,10 +81,10 @@ const styles = StyleSheet.create({
     right: 0,
     top: '42%',
     alignItems: 'center',
-    paddingHorizontal: 4,
+    paddingHorizontal: rw(4),
   },
   label: {
-    fontSize: 12,
+    fontSize: rf(12),
     fontWeight: '800',
     color: colors.surface,
     textTransform: 'uppercase',

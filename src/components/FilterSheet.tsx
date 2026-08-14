@@ -1,7 +1,6 @@
 import { Ionicons } from '@react-native-vector-icons/ionicons/static';
 import { useEffect, useState } from 'react';
 import {
-  ActivityIndicator,
   Modal,
   ScrollView,
   StyleSheet,
@@ -11,33 +10,32 @@ import {
   View,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import type { ProductFacets } from '../services/facetsApi';
-import type { PriceRange, ProductFilterState } from '../services/productsApi';
+import type { MatchesFilterState, MatchesFacets } from '../services/matchesFilters';
 import { colors } from '../theme/colors';
+import { rf, rh, rw } from '../theme/responsive';
 import { radii, spacing } from '../theme/spacing';
 
-type Category = 'brand' | 'price' | 'category' | 'rating';
+type Category = 'brand' | 'productType' | 'price' | 'score';
 
 const CATEGORIES: Array<{ key: Category; label: string }> = [
   { key: 'brand', label: 'Brand' },
+  { key: 'productType', label: 'Type' },
   { key: 'price', label: 'Price' },
-  { key: 'category', label: 'Category' },
-  { key: 'rating', label: 'Rating' },
+  { key: 'score', label: 'Match' },
 ];
 
 type Props = {
   visible: boolean;
-  facets: ProductFacets | null;
-  loadingFacets: boolean;
-  value: ProductFilterState;
-  onApply: (value: ProductFilterState) => void;
+  facets: MatchesFacets;
+  value: MatchesFilterState;
+  onApply: (value: MatchesFilterState) => void;
   onClose: () => void;
 };
 
-export function FilterSheet({ visible, facets, loadingFacets, value, onApply, onClose }: Props) {
+export function FilterSheet({ visible, facets, value, onApply, onClose }: Props) {
   const insets = useSafeAreaInsets();
   const [activeCategory, setActiveCategory] = useState<Category>('brand');
-  const [draft, setDraft] = useState<ProductFilterState>(value);
+  const [draft, setDraft] = useState<MatchesFilterState>(value);
   const [brandSearch, setBrandSearch] = useState('');
 
   useEffect(() => {
@@ -48,41 +46,21 @@ export function FilterSheet({ visible, facets, loadingFacets, value, onApply, on
     }
   }, [visible, value]);
 
-  const toggleBrand = (brand: string) => {
-    setDraft(prev => ({
-      ...prev,
-      brands: prev.brands.includes(brand)
-        ? prev.brands.filter(item => item !== brand)
-        : [...prev.brands, brand],
-    }));
+  const toggle = (key: 'brands' | 'productTypes' | 'priceRanges', item: string) => {
+    setDraft(prev => {
+      const current = prev[key] as string[];
+      const next = current.includes(item)
+        ? current.filter(existing => existing !== item)
+        : [...current, item];
+      return { ...prev, [key]: next } as MatchesFilterState;
+    });
   };
 
-  const toggleCategory = (category: string) => {
-    setDraft(prev => ({
-      ...prev,
-      categories: prev.categories.includes(category)
-        ? prev.categories.filter(item => item !== category)
-        : [...prev.categories, category],
-    }));
+  const setMinScore = (score: number) => {
+    setDraft(prev => ({ ...prev, minScore: prev.minScore === score ? null : score }));
   };
 
-  const togglePriceRange = (range: PriceRange) => {
-    setDraft(prev => ({
-      ...prev,
-      priceRanges: prev.priceRanges.includes(range)
-        ? prev.priceRanges.filter(item => item !== range)
-        : [...prev.priceRanges, range],
-    }));
-  };
-
-  const setMinRating = (rating: number) => {
-    setDraft(prev => ({
-      ...prev,
-      minRating: prev.minRating === rating ? null : rating,
-    }));
-  };
-
-  const visibleBrands = (facets?.options.brand ?? []).filter(option =>
+  const visibleBrands = facets.brand.filter(option =>
     option.label.toLowerCase().includes(brandSearch.trim().toLowerCase()),
   );
 
@@ -92,101 +70,107 @@ export function FilterSheet({ visible, facets, loadingFacets, value, onApply, on
         <View style={styles.sheet}>
           <View style={styles.header}>
             <Text style={styles.title}>Filters</Text>
-            <TouchableOpacity onPress={() => setDraft({ brands: [], categories: [], priceRanges: [], minRating: null })}>
+            <TouchableOpacity
+              onPress={() =>
+                setDraft(prev => ({
+                  brands: [],
+                  productTypes: [],
+                  bodyAreas: prev.bodyAreas,
+                  priceRanges: [],
+                  minScore: null,
+                }))
+              }
+            >
               <Text style={styles.resetLink}>Reset Filters</Text>
             </TouchableOpacity>
           </View>
 
-          {loadingFacets ? (
-            <ActivityIndicator color={colors.text} style={styles.loading} />
-          ) : (
-            <View style={styles.body}>
-              <View style={styles.tabs}>
-                {CATEGORIES.map(category => (
-                  <TouchableOpacity
-                    key={category.key}
-                    style={[styles.tab, activeCategory === category.key && styles.tabActive]}
-                    onPress={() => setActiveCategory(category.key)}
+          <View style={styles.body}>
+            <View style={styles.tabs}>
+              {CATEGORIES.map(category => (
+                <TouchableOpacity
+                  key={category.key}
+                  style={[styles.tab, activeCategory === category.key && styles.tabActive]}
+                  onPress={() => setActiveCategory(category.key)}
+                >
+                  <Text
+                    style={[
+                      styles.tabLabel,
+                      activeCategory === category.key && styles.tabLabelActive,
+                    ]}
                   >
-                    <Text
-                      style={[
-                        styles.tabLabel,
-                        activeCategory === category.key && styles.tabLabelActive,
-                      ]}
-                    >
-                      {category.label}
-                    </Text>
-                  </TouchableOpacity>
-                ))}
-              </View>
-
-              <View style={styles.panel}>
-                {activeCategory === 'brand' && (
-                  <>
-                    <View style={styles.searchBar}>
-                      <Ionicons name="search-outline" size={16} color={colors.textMuted} />
-                      <TextInput
-                        style={styles.searchInput}
-                        placeholder="Search brand"
-                        placeholderTextColor={colors.textMuted}
-                        value={brandSearch}
-                        onChangeText={setBrandSearch}
-                      />
-                    </View>
-                    <ScrollView showsVerticalScrollIndicator={false}>
-                      {visibleBrands.map(option => (
-                        <CheckRow
-                          key={option.value}
-                          label={`${option.label} (${option.count})`}
-                          checked={draft.brands.includes(option.value)}
-                          onPress={() => toggleBrand(option.value)}
-                        />
-                      ))}
-                    </ScrollView>
-                  </>
-                )}
-
-                {activeCategory === 'category' && (
-                  <ScrollView showsVerticalScrollIndicator={false}>
-                    {(facets?.options.category ?? []).map(option => (
-                      <CheckRow
-                        key={option.value}
-                        label={`${option.label} (${option.count})`}
-                        checked={draft.categories.includes(option.value)}
-                        onPress={() => toggleCategory(option.value)}
-                      />
-                    ))}
-                  </ScrollView>
-                )}
-
-                {activeCategory === 'price' && (
-                  <ScrollView showsVerticalScrollIndicator={false}>
-                    {(facets?.options.price ?? []).map(option => (
-                      <CheckRow
-                        key={option.value}
-                        label={`${option.label} (${option.count})`}
-                        checked={draft.priceRanges.includes(option.value as PriceRange)}
-                        onPress={() => togglePriceRange(option.value as PriceRange)}
-                      />
-                    ))}
-                  </ScrollView>
-                )}
-
-                {activeCategory === 'rating' && (
-                  <ScrollView showsVerticalScrollIndicator={false}>
-                    {(facets?.options.rating ?? []).map(option => (
-                      <CheckRow
-                        key={option.value}
-                        label={`${option.label} (${option.count})`}
-                        checked={draft.minRating === Number(option.value)}
-                        onPress={() => setMinRating(Number(option.value))}
-                      />
-                    ))}
-                  </ScrollView>
-                )}
-              </View>
+                    {category.label}
+                  </Text>
+                </TouchableOpacity>
+              ))}
             </View>
-          )}
+
+            <View style={styles.panel}>
+              {activeCategory === 'brand' && (
+                <>
+                  <View style={styles.searchBar}>
+                    <Ionicons name="search-outline" size={rw(16)} color={colors.textMuted} />
+                    <TextInput
+                      style={styles.searchInput}
+                      placeholder="Search brand"
+                      placeholderTextColor={colors.textMuted}
+                      value={brandSearch}
+                      onChangeText={setBrandSearch}
+                    />
+                  </View>
+                  <ScrollView showsVerticalScrollIndicator={false}>
+                    {visibleBrands.map(option => (
+                      <CheckRow
+                        key={option.value}
+                        label={`${option.label} (${option.count})`}
+                        checked={draft.brands.includes(option.value)}
+                        onPress={() => toggle('brands', option.value)}
+                      />
+                    ))}
+                  </ScrollView>
+                </>
+              )}
+
+              {activeCategory === 'productType' && (
+                <ScrollView showsVerticalScrollIndicator={false}>
+                  {facets.productType.map(option => (
+                    <CheckRow
+                      key={option.value}
+                      label={`${option.label} (${option.count})`}
+                      checked={draft.productTypes.includes(option.value)}
+                      onPress={() => toggle('productTypes', option.value)}
+                    />
+                  ))}
+                </ScrollView>
+              )}
+
+              {activeCategory === 'price' && (
+                <ScrollView showsVerticalScrollIndicator={false}>
+                  {facets.price.map(option => (
+                    <CheckRow
+                      key={option.value}
+                      label={`${option.label} (${option.count})`}
+                      checked={draft.priceRanges.includes(option.value as never)}
+                      onPress={() => toggle('priceRanges', option.value)}
+                    />
+                  ))}
+                </ScrollView>
+              )}
+
+              {activeCategory === 'score' && (
+                <ScrollView showsVerticalScrollIndicator={false}>
+                  {facets.score.map(option => (
+                    <CheckRow
+                      key={option.value}
+                      label={`${option.label} (${option.count})`}
+                      checked={draft.minScore === Number(option.value)}
+                      onPress={() => setMinScore(Number(option.value))}
+                    />
+                  ))}
+                </ScrollView>
+              )}
+            </View>
+          </View>
 
           <View style={[styles.footer, { paddingBottom: Math.max(insets.bottom, spacing.md) }]}>
             <TouchableOpacity style={styles.closeButton} onPress={onClose} activeOpacity={0.8}>
@@ -221,7 +205,7 @@ function CheckRow({
   return (
     <TouchableOpacity style={styles.checkRow} onPress={onPress} activeOpacity={0.7}>
       <View style={[styles.checkbox, checked && styles.checkboxChecked]}>
-        {checked && <Ionicons name="checkmark" size={13} color={colors.surface} />}
+        {checked && <Ionicons name="checkmark" size={rw(13)} color={colors.surface} />}
       </View>
       <Text style={styles.checkRowLabel} numberOfLines={1}>
         {label}
@@ -253,35 +237,32 @@ const styles = StyleSheet.create({
     borderBottomColor: colors.border,
   },
   title: {
-    fontSize: 17,
+    fontSize: rf(17),
     fontWeight: '700',
     color: colors.text,
   },
   resetLink: {
-    fontSize: 13,
+    fontSize: rf(13),
     fontWeight: '600',
     color: colors.primaryDark,
-  },
-  loading: {
-    marginTop: spacing.xl,
   },
   body: {
     flex: 1,
     flexDirection: 'row',
   },
   tabs: {
-    width: 110,
+    width: rw(100),
     backgroundColor: colors.background,
   },
   tab: {
-    paddingVertical: 16,
+    paddingVertical: rh(16),
     paddingHorizontal: spacing.md,
   },
   tabActive: {
     backgroundColor: colors.surface,
   },
   tabLabel: {
-    fontSize: 13,
+    fontSize: rf(13),
     fontWeight: '600',
     color: colors.textMuted,
   },
@@ -306,20 +287,20 @@ const styles = StyleSheet.create({
   searchInput: {
     flex: 1,
     minWidth: 0,
-    paddingVertical: 8,
-    fontSize: 13,
+    paddingVertical: rh(8),
+    fontSize: rf(13),
     color: colors.text,
   },
   checkRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingVertical: 10,
+    paddingVertical: rh(10),
     gap: spacing.sm,
   },
   checkbox: {
-    width: 18,
-    height: 18,
-    borderRadius: 4,
+    width: rw(18),
+    height: rw(18),
+    borderRadius: rw(4),
     borderWidth: 1.5,
     borderColor: colors.border,
     alignItems: 'center',
@@ -330,7 +311,7 @@ const styles = StyleSheet.create({
     borderColor: colors.text,
   },
   checkRowLabel: {
-    fontSize: 13,
+    fontSize: rf(13),
     color: colors.text,
     flexShrink: 1,
   },
@@ -338,7 +319,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     gap: spacing.sm,
     paddingHorizontal: spacing.lg,
-    paddingVertical: spacing.md,
+    paddingTop: spacing.md,
     borderTopWidth: 1,
     borderTopColor: colors.border,
   },
@@ -347,11 +328,11 @@ const styles = StyleSheet.create({
     borderWidth: 1.5,
     borderColor: colors.primary,
     borderRadius: radii.lg,
-    paddingVertical: 14,
+    paddingVertical: rh(14),
     alignItems: 'center',
   },
   closeButtonText: {
-    fontSize: 14,
+    fontSize: rf(14),
     fontWeight: '700',
     color: colors.primary,
   },
@@ -359,11 +340,11 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: colors.primary,
     borderRadius: radii.lg,
-    paddingVertical: 14,
+    paddingVertical: rh(14),
     alignItems: 'center',
   },
   applyButtonText: {
-    fontSize: 14,
+    fontSize: rf(14),
     fontWeight: '700',
     color: colors.surface,
   },

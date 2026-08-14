@@ -4,6 +4,7 @@ import { Image, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import type { Product } from '../types/product';
 import { colors } from '../theme/colors';
 import { getScoreTier } from '../theme/scoreTier';
+import { rf, rh, rw } from '../theme/responsive';
 import { radii, spacing } from '../theme/spacing';
 
 type Props = {
@@ -31,7 +32,7 @@ export function ProductCard({ product, wishlisted, onPress, onToggleWishlist }: 
             onError={() => setImageFailed(true)}
           />
         ) : (
-          <Ionicons name="flask-outline" size={32} color={colors.textMuted} />
+          <Ionicons name="flask-outline" size={rw(32)} color={colors.textMuted} />
         )}
       </View>
 
@@ -61,7 +62,7 @@ export function ProductCard({ product, wishlisted, onPress, onToggleWishlist }: 
         >
           <Ionicons
             name={wishlisted ? 'heart' : 'heart-outline'}
-            size={14}
+            size={rw(14)}
             color={colors.primary}
           />
           <Text style={styles.saveButtonText} numberOfLines={1}>
@@ -98,24 +99,24 @@ const styles = StyleSheet.create({
   },
   scoreBadge: {
     position: 'absolute',
-    top: -10,
+    top: rh(-10),
     right: spacing.sm,
-    width: 44,
-    height: 44,
-    borderRadius: 22,
+    width: rw(44),
+    height: rw(44),
+    borderRadius: rw(22),
     borderWidth: 2,
     borderColor: colors.surface,
     alignItems: 'center',
     justifyContent: 'center',
   },
   scoreBadgeNumber: {
-    fontSize: 14,
+    fontSize: rf(14),
     fontWeight: '800',
     color: colors.surface,
-    lineHeight: 16,
+    lineHeight: rf(16),
   },
   scoreBadgeLabel: {
-    fontSize: 7,
+    fontSize: rf(7),
     fontWeight: '700',
     color: colors.surface,
     letterSpacing: 0.3,
@@ -124,32 +125,32 @@ const styles = StyleSheet.create({
     padding: spacing.sm,
   },
   brand: {
-    fontSize: 11,
+    fontSize: rf(11),
     fontWeight: '700',
     color: colors.textMuted,
     textTransform: 'uppercase',
     letterSpacing: 0.3,
   },
   name: {
-    fontSize: 13,
+    fontSize: rf(13),
     fontWeight: '600',
     color: colors.text,
-    marginTop: 2,
-    minHeight: 34,
+    marginTop: rh(2),
+    minHeight: rh(34),
   },
   priceRow: {
     flexDirection: 'row',
     alignItems: 'baseline',
-    gap: 6,
+    gap: rw(6),
     marginTop: spacing.xs,
   },
   mrp: {
-    fontSize: 12,
+    fontSize: rf(12),
     color: colors.textMuted,
     textDecorationLine: 'line-through',
   },
   price: {
-    fontSize: 14,
+    fontSize: rf(14),
     fontWeight: '700',
     color: colors.text,
   },
@@ -157,18 +158,18 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    gap: 4,
+    gap: rw(4),
     borderWidth: 1.5,
     borderColor: colors.primary,
     borderRadius: radii.lg,
-    paddingVertical: 8,
+    paddingVertical: rh(8),
     marginTop: spacing.sm,
   },
   saveButtonActive: {
     backgroundColor: colors.primarySoft,
   },
   saveButtonText: {
-    fontSize: 12,
+    fontSize: rf(12),
     fontWeight: '700',
     color: colors.primary,
   },

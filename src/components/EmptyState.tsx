@@ -2,6 +2,7 @@ import { Ionicons } from '@react-native-vector-icons/ionicons/static';
 import { StyleSheet, Text, View } from 'react-native';
 import { colors } from '../theme/colors';
 import type { IoniconName } from '../theme/icons';
+import { rf, rw } from '../theme/responsive';
 import { spacing } from '../theme/spacing';
 
 type Props = {
@@ -13,7 +14,7 @@ type Props = {
 export function EmptyState({ icon, title, subtitle }: Props) {
   return (
     <View style={styles.container}>
-      <Ionicons name={icon} size={48} color={colors.tabInactive} />
+      <Ionicons name={icon} size={rw(48)} color={colors.tabInactive} />
       <Text style={styles.title}>{title}</Text>
       {subtitle && <Text style={styles.subtitle}>{subtitle}</Text>}
     </View>
@@ -28,14 +29,14 @@ const styles = StyleSheet.create({
     paddingHorizontal: spacing.xl,
   },
   title: {
-    fontSize: 16,
+    fontSize: rf(16),
     fontWeight: '600',
     color: colors.text,
     marginTop: spacing.md,
     textAlign: 'center',
   },
   subtitle: {
-    fontSize: 14,
+    fontSize: rf(14),
     color: colors.textMuted,
     marginTop: spacing.xs,
     textAlign: 'center',

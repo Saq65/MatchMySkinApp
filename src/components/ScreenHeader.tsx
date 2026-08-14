@@ -2,6 +2,7 @@ import { Ionicons } from '@react-native-vector-icons/ionicons/static';
 import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { colors } from '../theme/colors';
 import type { IoniconName } from '../theme/icons';
+import { rf, rw } from '../theme/responsive';
 import { spacing } from '../theme/spacing';
 
 type Props = {
@@ -20,7 +21,7 @@ export function ScreenHeader({ title, onBack, rightIcon, onRightPress }: Props) 
             onPress={onBack}
             hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
           >
-            <Ionicons name="chevron-back" size={24} color={colors.text} />
+            <Ionicons name="chevron-back" size={rw(24)} color={colors.text} />
           </TouchableOpacity>
         )}
       </View>
@@ -35,7 +36,7 @@ export function ScreenHeader({ title, onBack, rightIcon, onRightPress }: Props) 
             onPress={onRightPress}
             hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
           >
-            <Ionicons name={rightIcon} size={22} color={colors.text} />
+            <Ionicons name={rightIcon} size={rw(22)} color={colors.text} />
           </TouchableOpacity>
         )}
       </View>
@@ -51,14 +52,14 @@ const styles = StyleSheet.create({
     paddingVertical: spacing.md,
   },
   side: {
-    width: 32,
+    width: rw(32),
   },
   rightSide: {
     alignItems: 'flex-end',
   },
   title: {
     flex: 1,
-    fontSize: 18,
+    fontSize: rf(18),
     fontWeight: '700',
     color: colors.text,
     textAlign: 'center',

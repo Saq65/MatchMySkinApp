@@ -4,7 +4,9 @@ import type { Product } from '../types/product';
 
 export type MainTabParamList = {
   Home: undefined;
-  Products: { category?: string } | undefined;
+  Products:
+    | { bodyArea?: string | null; productType?: string | null; brand?: string | null }
+    | undefined;
   Wishlist: undefined;
   Profile: undefined;
 };

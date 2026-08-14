@@ -69,6 +69,9 @@ export type Product = {
   productUid?: string;
   productUrl?: string;
   site?: string;
+  // Raw "Face"/"Body" tag from the scored catalog (separate from `category`,
+  // which holds the more specific product_type like "Serum" for display).
+  bodyArea?: string;
 };
 
 function toNumber(value: number | string | null | undefined): number | undefined {
@@ -117,6 +120,7 @@ export function productFromRoutine(product: RoutineProduct): Product {
     donts: product.donts,
     ingredients: product.ingredients,
     productUid: product.product_uid,
+    bodyArea: product.category,
   };
 }
 

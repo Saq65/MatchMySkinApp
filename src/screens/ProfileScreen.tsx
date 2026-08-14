@@ -12,6 +12,7 @@ import { getStoredQuizProfile } from '../services/quizProfileStorage';
 import type { MainTabParamList, RootStackParamList } from '../navigation/types';
 import { colors } from '../theme/colors';
 import type { IoniconName } from '../theme/icons';
+import { rf, rh, rw } from '../theme/responsive';
 import { radii, spacing } from '../theme/spacing';
 
 type Props = CompositeScreenProps<
@@ -77,7 +78,7 @@ export function ProfileScreen({ navigation }: Props) {
 
         <View style={styles.userCard}>
           <View style={styles.avatar}>
-            <Ionicons name="person" size={28} color={colors.primaryDark} />
+            <Ionicons name="person" size={rw(28)} color={colors.primaryDark} />
           </View>
           <View style={styles.userInfo}>
             <Text style={styles.userName}>{userName ?? 'Guest'}</Text>
@@ -104,7 +105,7 @@ export function ProfileScreen({ navigation }: Props) {
                   <Text style={styles.profileRowValueText} numberOfLines={1}>
                     {row.value}
                   </Text>
-                  <Ionicons name="chevron-forward" size={16} color={colors.tabInactive} />
+                  <Ionicons name="chevron-forward" size={rw(16)} color={colors.tabInactive} />
                 </View>
               </TouchableOpacity>
             ))}
@@ -139,9 +140,9 @@ export function ProfileScreen({ navigation }: Props) {
                 navigation.navigate(item.key);
               }}
             >
-              <Ionicons name={item.icon} size={20} color={colors.text} />
+              <Ionicons name={item.icon} size={rw(20)} color={colors.text} />
               <Text style={styles.menuLabel}>{item.label}</Text>
-              <Ionicons name="chevron-forward" size={18} color={colors.tabInactive} />
+              <Ionicons name="chevron-forward" size={rw(18)} color={colors.tabInactive} />
             </TouchableOpacity>
           ))}
         </View>
@@ -159,7 +160,7 @@ const styles = StyleSheet.create({
     paddingBottom: spacing.xl,
   },
   title: {
-    fontSize: 22,
+    fontSize: rf(22),
     fontWeight: '700',
     color: colors.text,
     paddingHorizontal: spacing.lg,
@@ -178,9 +179,9 @@ const styles = StyleSheet.create({
     gap: spacing.md,
   },
   avatar: {
-    width: 52,
-    height: 52,
-    borderRadius: 26,
+    width: rw(52),
+    height: rw(52),
+    borderRadius: rw(26),
     backgroundColor: colors.primarySoft,
     alignItems: 'center',
     justifyContent: 'center',
@@ -190,17 +191,17 @@ const styles = StyleSheet.create({
     minWidth: 0,
   },
   userName: {
-    fontSize: 16,
+    fontSize: rf(16),
     fontWeight: '700',
     color: colors.text,
   },
   userSubtitle: {
-    fontSize: 12,
+    fontSize: rf(12),
     color: colors.textMuted,
-    marginTop: 2,
+    marginTop: rh(2),
   },
   sectionLabel: {
-    fontSize: 12,
+    fontSize: rf(12),
     fontWeight: '700',
     color: colors.textMuted,
     letterSpacing: 0.5,
@@ -220,7 +221,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    paddingVertical: 14,
+    paddingVertical: rh(14),
     paddingHorizontal: spacing.md,
     borderTopWidth: 1,
     borderTopColor: colors.border,
@@ -229,32 +230,32 @@ const styles = StyleSheet.create({
     borderTopWidth: 0,
   },
   profileRowLabel: {
-    fontSize: 14,
+    fontSize: rf(14),
     color: colors.textMuted,
   },
   profileRowValue: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 4,
+    gap: rw(4),
     flexShrink: 1,
     marginLeft: spacing.md,
   },
   profileRowValueText: {
-    fontSize: 14,
+    fontSize: rf(14),
     fontWeight: '700',
     color: colors.text,
     flexShrink: 1,
   },
   emptyProfileText: {
-    fontSize: 14,
+    fontSize: rf(14),
     color: colors.textMuted,
-    lineHeight: 20,
+    lineHeight: rf(20),
     padding: spacing.md,
   },
   quizButton: {
     backgroundColor: colors.text,
     borderRadius: radii.sm,
-    paddingVertical: 14,
+    paddingVertical: rh(14),
     alignItems: 'center',
     marginHorizontal: spacing.md,
     marginBottom: spacing.md,
@@ -262,7 +263,7 @@ const styles = StyleSheet.create({
   quizButtonText: {
     color: colors.surface,
     fontWeight: '700',
-    fontSize: 14,
+    fontSize: rf(14),
   },
   menuRow: {
     flexDirection: 'row',
@@ -275,7 +276,7 @@ const styles = StyleSheet.create({
   },
   menuLabel: {
     flex: 1,
-    fontSize: 15,
+    fontSize: rf(15),
     fontWeight: '500',
     color: colors.text,
   },

@@ -17,6 +17,7 @@ import { ProgressBar } from '../components/ProgressBar';
 import { fetchQuizOptions, type QuizOptions, type QuizProfile } from '../services/quizApi';
 import type { RootStackParamList } from '../navigation/types';
 import { colors } from '../theme/colors';
+import { rf, rh, rw } from '../theme/responsive';
 import { serifItalic } from '../theme/typography';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'Quiz'>;
@@ -313,24 +314,24 @@ const styles = StyleSheet.create({
     flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
-    paddingHorizontal: 24,
-    gap: 16,
+    paddingHorizontal: rw(24),
+    gap: rw(16),
   },
   errorText: {
-    fontSize: 15,
+    fontSize: rf(15),
     color: colors.textMuted,
     textAlign: 'center',
   },
   header: {
-    paddingHorizontal: 24,
-    paddingTop: 12,
+    paddingHorizontal: rw(24),
+    paddingTop: rh(12),
   },
   backButton: {
     alignSelf: 'flex-start',
-    marginBottom: 12,
+    marginBottom: rh(12),
   },
   backText: {
-    fontSize: 15,
+    fontSize: rf(15),
     fontWeight: '600',
     color: colors.textMuted,
   },
@@ -338,34 +339,34 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   contentContainer: {
-    paddingHorizontal: 24,
-    paddingTop: 20,
-    paddingBottom: 24,
+    paddingHorizontal: rw(24),
+    paddingTop: rh(20),
+    paddingBottom: rh(24),
   },
   title: {
     ...serifItalic,
-    fontSize: 24,
+    fontSize: rf(24),
     fontWeight: '700',
     color: colors.text,
-    marginBottom: 6,
+    marginBottom: rh(6),
   },
   subtitle: {
-    fontSize: 15,
+    fontSize: rf(15),
     color: colors.textMuted,
-    marginBottom: 24,
+    marginBottom: rh(24),
   },
   options: {
-    marginTop: 8,
+    marginTop: rh(8),
   },
   chips: {
     flexDirection: 'row',
     flexWrap: 'wrap',
-    gap: 10,
-    marginTop: 8,
+    gap: rw(10),
+    marginTop: rh(8),
   },
   footer: {
-    paddingHorizontal: 24,
-    paddingBottom: 16,
-    paddingTop: 8,
+    paddingHorizontal: rw(24),
+    paddingBottom: rh(16),
+    paddingTop: rh(8),
   },
 });

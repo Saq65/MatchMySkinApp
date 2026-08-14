@@ -3,9 +3,20 @@ import type { CompositeScreenProps } from '@react-navigation/native';
 import type { BottomTabScreenProps } from '@react-navigation/bottom-tabs';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { useCallback, useEffect, useState } from 'react';
-import { ActivityIndicator, Image, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import {
+  ActivityIndicator,
+  Image,
+  RefreshControl,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
+} from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { ProductCard } from '../components/ProductCard';
+import { SearchByCategory } from '../components/SearchByCategory';
+import { SearchByKBeauty } from '../components/SearchByKBeauty';
 import { SearchByProduct } from '../components/SearchByProduct';
 import AnnouncementBar from '../components/TickerBar';
 import { useAuth } from '../context/AuthContext';
@@ -15,6 +26,7 @@ import { getStoredQuizProfile } from '../services/quizProfileStorage';
 import type { MainTabParamList, RootStackParamList } from '../navigation/types';
 import { productFromRoutine, type Product } from '../types/product';
 import { colors } from '../theme/colors';
+import { rf, rh, rw } from '../theme/responsive';
 import { radii, spacing } from '../theme/spacing';
 import { serifItalic } from '../theme/typography';
 
@@ -23,14 +35,43 @@ type Props = CompositeScreenProps<
   NativeStackScreenProps<RootStackParamList>
 >;
 
+function pickMatchSpread(products: Product[]): Product[] {
+  const used = new Set<string>();
+  const take = (pool: Product[], count: number) => {
+    const picked = pool.filter(p => !used.has(p.id)).slice(0, count);
+    picked.forEach(p => used.add(p.id));
+    return picked;
+  };
+
+  const high = take(
+    products.filter(p => (p.matchScore ?? 0) >= 90),
+    2,
+  );
+  const mid = take(
+    products.filter(p => (p.matchScore ?? 0) >= 75 && (p.matchScore ?? 0) < 90),
+    2,
+  );
+  const low = take(
+    products.filter(p => (p.matchScore ?? 0) < 60),
+    2,
+  );
+
+  const spread = [...high, ...mid, ...low];
+  if (spread.length < 6) {
+    spread.push(...take(products, 6 - spread.length));
+  }
+
+  return spread.sort((a, b) => (b.matchScore ?? 0) - (a.matchScore ?? 0));
+}
+
 export function HomeScreen({ navigation }: Props) {
   const { isLoggedIn } = useAuth();
   const { isWishlisted, toggleWishlist } = useShop();
   const [profile, setProfile] = useState<QuizProfile | null | undefined>(undefined);
   const [matches, setMatches] = useState<Product[] | null>(null);
   const [matchesError, setMatchesError] = useState(false);
+  const [refreshing, setRefreshing] = useState(false);
 
-  // Re-check on every focus so completing the quiz and coming back to this
   // tab immediately reflects the new state, without needing a remount.
   useFocusEffect(
     useCallback(() => {
@@ -61,10 +102,10 @@ export function HomeScreen({ navigation }: Props) {
     let cancelled = false;
     setMatches(null);
     setMatchesError(false);
-    fetchRecommendedProducts(profile)
+    fetchRecommendedProducts(profile, 409)
       .then(products => {
         if (!cancelled) {
-          setMatches(products.map(productFromRoutine));
+          setMatches(pickMatchSpread(products.map(productFromRoutine)));
         }
       })
       .catch(() => {
@@ -76,6 +117,25 @@ export function HomeScreen({ navigation }: Props) {
       cancelled = true;
     };
   }, [profile]);
+
+  const onRefresh = useCallback(async () => {
+    setRefreshing(true);
+    try {
+      const stored = await getStoredQuizProfile();
+      setProfile(stored);
+      if (stored) {
+        const products = await fetchRecommendedProducts(stored, 409);
+        setMatches(pickMatchSpread(products.map(productFromRoutine)));
+        setMatchesError(false);
+      } else {
+        setMatches(null);
+      }
+    } catch {
+      setMatchesError(true);
+    } finally {
+      setRefreshing(false);
+    }
+  }, []);
 
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
@@ -98,7 +158,18 @@ export function HomeScreen({ navigation }: Props) {
      
       {/* <BrandStrip brands={brands} /> */}
 
-      <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
+      <ScrollView
+        contentContainerStyle={styles.content}
+        showsVerticalScrollIndicator={false}
+        refreshControl={
+          <RefreshControl
+            refreshing={refreshing}
+            onRefresh={onRefresh}
+            tintColor={colors.primary}
+            colors={[colors.primary]}
+          />
+        }
+      >
          <View style={styles.hero}>
         <Text style={styles.heroTitle}>
           Skin <Text style={styles.heroTitleItalic}>match</Text> tool
@@ -114,9 +185,6 @@ export function HomeScreen({ navigation }: Props) {
           resizeMode="cover"
         />
 
-        <SearchByProduct
-          onSelect={category => navigation.navigate('Products', { category })}
-        />
 
         {/* <Text style={styles.greeting}>Hi{userName ? `, ${userName}` : ''} 👋</Text> */}
 
@@ -165,6 +233,15 @@ export function HomeScreen({ navigation }: Props) {
             )}
           </>
         )}
+        <SearchByCategory
+          onSelect={bodyArea => navigation.navigate('Products', { bodyArea })}
+        />
+        <SearchByProduct
+          onSelect={productType => navigation.navigate('Products', { productType })}
+        />
+        <SearchByKBeauty
+          onSelect={brand => navigation.navigate('Products', { brand })}
+        />
       </ScrollView>
     </SafeAreaView>
   );
@@ -185,7 +262,7 @@ const styles = StyleSheet.create({
     borderBottomColor: colors.border,
   },
   wordmark: {
-    fontSize: 22,
+    fontSize: rf(22),
     fontWeight: '800',
     color: colors.text,
   },
@@ -197,10 +274,10 @@ const styles = StyleSheet.create({
     borderColor: colors.border,
     borderRadius: radii.lg,
     paddingHorizontal: spacing.md,
-    paddingVertical: 6,
+    paddingVertical: rh(6),
   },
   loginButtonText: {
-    fontSize: 13,
+    fontSize: rf(13),
     fontWeight: '600',
     color: colors.text,
   },
@@ -211,7 +288,7 @@ const styles = StyleSheet.create({
   },
   heroTitle: {
     ...serifItalic,
-    fontSize: 26,
+    fontSize: rf(26),
     fontWeight: '700',
     color: colors.text,
     letterSpacing: 1,
@@ -220,9 +297,9 @@ const styles = StyleSheet.create({
     ...serifItalic,
   },
   heroSubtitle: {
-    fontSize: 12,
+    fontSize: rf(12),
     color: colors.textMuted,
-    marginTop: 4,
+    marginTop: rh(4),
     textAlign: 'center',
   },
   content: {
@@ -232,18 +309,18 @@ const styles = StyleSheet.create({
   },
   heroImage: {
     width: '100%',
-    height: 150,
+    height: rw(150),
     borderRadius: radii.lg,
     marginBottom: spacing.lg,
   },
   greeting: {
-    fontSize: 15,
+    fontSize: rf(15),
     color: colors.textMuted,
     marginBottom: spacing.md,
   },
   heading: {
     ...serifItalic,
-    fontSize: 24,
+    fontSize: rf(24),
     fontWeight: '700',
     color: colors.text,
   },
@@ -251,22 +328,22 @@ const styles = StyleSheet.create({
     paddingVertical: spacing.lg,
   },
   quizPromptSubtitle: {
-    fontSize: 14,
+    fontSize: rf(14),
     color: colors.textMuted,
     marginTop: spacing.sm,
     marginBottom: spacing.lg,
-    lineHeight: 21,
+    lineHeight: rf(21),
   },
   quizButton: {
     backgroundColor: colors.text,
     borderRadius: radii.md,
-    paddingVertical: 16,
+    paddingVertical: rh(16),
     alignItems: 'center',
   },
   quizButtonText: {
     color: colors.surface,
     fontWeight: '700',
-    fontSize: 15,
+    fontSize: rf(15),
   },
   sectionHeader: {
     flexDirection: 'row',
@@ -275,12 +352,12 @@ const styles = StyleSheet.create({
     marginBottom: spacing.md,
   },
   sectionLink: {
-    fontSize: 13,
+    fontSize: rf(13),
     fontWeight: '600',
     color: colors.primaryDark,
   },
   errorText: {
-    fontSize: 14,
+    fontSize: rf(14),
     color: colors.textMuted,
   },
   grid: {

@@ -1,10 +1,11 @@
 import { Ionicons } from '@react-native-vector-icons/ionicons/static';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import {
   ActivityIndicator,
   Image,
   Linking,
+  RefreshControl,
   ScrollView,
   StyleSheet,
   Text,
@@ -17,6 +18,7 @@ import { useShop } from '../context/ShopContext';
 import { fetchProductOffers, type ProductOffer } from '../services/offersApi';
 import type { RootStackParamList } from '../navigation/types';
 import { colors } from '../theme/colors';
+import { rf, rh, rw } from '../theme/responsive';
 import { radii, spacing } from '../theme/spacing';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'ProductDetails'>;
@@ -31,6 +33,7 @@ export function ProductDetailsScreen({ route, navigation }: Props) {
   const [imageFailed, setImageFailed] = useState(false);
   const [offers, setOffers] = useState<ProductOffer[] | null>(null);
   const [offersError, setOffersError] = useState(false);
+  const [refreshing, setRefreshing] = useState(false);
 
   const wishlisted = isWishlisted(product.id);
   const showImage = product.imageUrl && !imageFailed;
@@ -56,6 +59,20 @@ export function ProductDetailsScreen({ route, navigation }: Props) {
     };
   }, [product.productUid]);
 
+  const onRefresh = useCallback(async () => {
+    if (!product.productUid) return;
+    setRefreshing(true);
+    try {
+      const response = await fetchProductOffers(product.productUid);
+      setOffers(response.offers);
+      setOffersError(false);
+    } catch {
+      setOffersError(true);
+    } finally {
+      setRefreshing(false);
+    }
+  }, [product.productUid]);
+
   return (
     <SafeAreaView style={styles.container} edges={['top', 'bottom']}>
       <ScreenHeader
@@ -65,7 +82,18 @@ export function ProductDetailsScreen({ route, navigation }: Props) {
         onRightPress={() => toggleWishlist(product)}
       />
 
-      <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
+      <ScrollView
+        contentContainerStyle={styles.content}
+        showsVerticalScrollIndicator={false}
+        refreshControl={
+          <RefreshControl
+            refreshing={refreshing}
+            onRefresh={onRefresh}
+            tintColor={colors.primary}
+            colors={[colors.primary]}
+          />
+        }
+      >
         <View style={styles.imageArea}>
           {showImage ? (
             <Image
@@ -75,13 +103,13 @@ export function ProductDetailsScreen({ route, navigation }: Props) {
               onError={() => setImageFailed(true)}
             />
           ) : (
-            <Ionicons name="flask-outline" size={64} color={colors.textMuted} />
+            <Ionicons name="flask-outline" size={rw(64)} color={colors.textMuted} />
           )}
         </View>
 
         {product.matchScore !== undefined && (
           <View style={styles.matchBadge}>
-            <Ionicons name="sparkles-outline" size={14} color={colors.primaryDark} />
+            <Ionicons name="sparkles-outline" size={rw(14)} color={colors.primaryDark} />
             <Text style={styles.matchBadgeText}>
               {product.matchScore}% match{product.matchLabel ? ` · ${product.matchLabel}` : ''}
             </Text>
@@ -94,7 +122,7 @@ export function ProductDetailsScreen({ route, navigation }: Props) {
         <View style={styles.metaRow}>
           {product.rating !== undefined && (
             <View style={styles.ratingRow}>
-              <Ionicons name="star" size={16} color={colors.star} />
+              <Ionicons name="star" size={rw(16)} color={colors.star} />
               <Text style={styles.rating}>{product.rating.toFixed(1)}</Text>
             </View>
           )}
@@ -182,7 +210,7 @@ const styles = StyleSheet.create({
     paddingBottom: spacing.lg,
   },
   imageArea: {
-    height: 220,
+    height: rw(220),
     borderRadius: radii.lg,
     backgroundColor: colors.primarySoft,
     alignItems: 'center',
@@ -201,27 +229,27 @@ const styles = StyleSheet.create({
     backgroundColor: colors.primarySoft,
     borderRadius: radii.sm,
     paddingHorizontal: spacing.sm,
-    paddingVertical: 6,
+    paddingVertical: rh(6),
     marginBottom: spacing.sm,
-    gap: 6,
+    gap: rw(6),
   },
   matchBadgeText: {
-    fontSize: 12,
+    fontSize: rf(12),
     fontWeight: '700',
     color: colors.primaryDark,
   },
   brand: {
-    fontSize: 13,
+    fontSize: rf(13),
     fontWeight: '700',
     color: colors.textMuted,
     textTransform: 'uppercase',
     letterSpacing: 0.3,
   },
   name: {
-    fontSize: 21,
+    fontSize: rf(21),
     fontWeight: '700',
     color: colors.text,
-    marginTop: 4,
+    marginTop: rh(4),
   },
   metaRow: {
     flexDirection: 'row',
@@ -232,26 +260,26 @@ const styles = StyleSheet.create({
   ratingRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 4,
+    gap: rw(4),
   },
   rating: {
-    fontSize: 14,
+    fontSize: rf(14),
     fontWeight: '600',
     color: colors.text,
   },
   category: {
-    fontSize: 14,
+    fontSize: rf(14),
     color: colors.textMuted,
   },
   sectionHeading: {
-    fontSize: 15,
+    fontSize: rf(15),
     fontWeight: '700',
     color: colors.text,
     marginTop: spacing.lg,
     marginBottom: spacing.sm,
   },
   helperText: {
-    fontSize: 14,
+    fontSize: rf(14),
     color: colors.textMuted,
   },
   offersLoading: {
@@ -279,18 +307,18 @@ const styles = StyleSheet.create({
     minWidth: 0,
   },
   offerSite: {
-    fontSize: 15,
+    fontSize: rf(15),
     fontWeight: '700',
     color: colors.text,
   },
   cheapestTag: {
-    fontSize: 11,
+    fontSize: rf(11),
     fontWeight: '700',
     color: colors.primaryDark,
-    marginTop: 2,
+    marginTop: rh(2),
   },
   offerPrice: {
-    fontSize: 15,
+    fontSize: rf(15),
     fontWeight: '700',
     color: colors.text,
   },
@@ -299,16 +327,16 @@ const styles = StyleSheet.create({
     borderColor: colors.text,
     borderRadius: radii.lg,
     paddingHorizontal: spacing.md,
-    paddingVertical: 6,
+    paddingVertical: rh(6),
   },
   buyButtonText: {
-    fontSize: 12,
+    fontSize: rf(12),
     fontWeight: '700',
     color: colors.text,
   },
   description: {
-    fontSize: 14,
+    fontSize: rf(14),
     color: colors.textMuted,
-    lineHeight: 21,
+    lineHeight: rf(21),
   },
 });

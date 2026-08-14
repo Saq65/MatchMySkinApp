@@ -8,6 +8,7 @@ import { ProfileScreen } from '../screens/ProfileScreen';
 import { WishlistScreen } from '../screens/WishlistScreen';
 import { colors } from '../theme/colors';
 import type { IoniconName } from '../theme/icons';
+import { rf } from '../theme/responsive';
 import type { MainTabParamList } from './types';
 
 const Tab = createBottomTabNavigator<MainTabParamList>();
@@ -48,7 +49,7 @@ export function MainTabs() {
           borderTopColor: colors.border,
         },
         tabBarLabelStyle: {
-          fontSize: 11,
+          fontSize: rf(11),
           fontWeight: '600',
         },
         tabBarIcon: ({ focused, color, size }) => (
@@ -74,7 +75,7 @@ export function MainTabs() {
 const styles = StyleSheet.create({
   badge: {
     backgroundColor: colors.primary,
-    fontSize: 11,
+    fontSize: rf(11),
     fontWeight: '700',
   },
 });

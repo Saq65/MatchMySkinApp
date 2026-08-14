@@ -1,9 +1,10 @@
 import { Ionicons } from '@react-native-vector-icons/ionicons/static';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import {
   ActivityIndicator,
   FlatList,
+  RefreshControl,
   StyleSheet,
   Text,
   TextInput,
@@ -18,6 +19,7 @@ import { fetchRetailerProducts } from '../services/productsApi';
 import type { RootStackParamList } from '../navigation/types';
 import { productFromRetailer, type Product } from '../types/product';
 import { colors } from '../theme/colors';
+import { rf, rh, rw } from '../theme/responsive';
 import { radii, spacing } from '../theme/spacing';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'Search'>;
@@ -26,6 +28,7 @@ export function SearchScreen({ navigation }: Props) {
   const [query, setQuery] = useState('');
   const [results, setResults] = useState<Product[]>([]);
   const [loading, setLoading] = useState(false);
+  const [refreshing, setRefreshing] = useState(false);
   const { isWishlisted, toggleWishlist } = useShop();
 
   useEffect(() => {
@@ -63,12 +66,26 @@ export function SearchScreen({ navigation }: Props) {
     };
   }, [query]);
 
+  const onRefresh = useCallback(async () => {
+    const trimmed = query.trim();
+    if (!trimmed) return;
+    setRefreshing(true);
+    try {
+      const response = await fetchRetailerProducts({ search: trimmed, limit: 30 });
+      setResults(response.products.map(productFromRetailer));
+    } catch {
+      setResults([]);
+    } finally {
+      setRefreshing(false);
+    }
+  }, [query]);
+
   return (
     <SafeAreaView style={styles.container} edges={['top', 'bottom']}>
       <ScreenHeader title="Search" onBack={() => navigation.goBack()} />
 
       <View style={styles.searchBar}>
-        <Ionicons name="search-outline" size={18} color={colors.textMuted} />
+        <Ionicons name="search-outline" size={rw(18)} color={colors.textMuted} />
         <TextInput
           style={styles.input}
           placeholder="Search products, brands, categories"
@@ -80,7 +97,7 @@ export function SearchScreen({ navigation }: Props) {
         />
         {query.length > 0 && (
           <TouchableOpacity onPress={() => setQuery('')} hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}>
-            <Ionicons name="close-outline" size={18} color={colors.textMuted} />
+            <Ionicons name="close-outline" size={rw(18)} color={colors.textMuted} />
           </TouchableOpacity>
         )}
       </View>
@@ -100,6 +117,14 @@ export function SearchScreen({ navigation }: Props) {
           data={results}
           keyExtractor={item => item.id}
           contentContainerStyle={styles.listContent}
+          refreshControl={
+            <RefreshControl
+              refreshing={refreshing}
+              onRefresh={onRefresh}
+              tintColor={colors.primary}
+              colors={[colors.primary]}
+            />
+          }
           renderItem={({ item }) => {
             const wishlisted = isWishlisted(item.id);
             return (
@@ -108,7 +133,7 @@ export function SearchScreen({ navigation }: Props) {
                 onPress={() => navigation.navigate('ProductDetails', { product: item })}
                 activeOpacity={0.85}
               >
-                <Ionicons name="flask-outline" size={22} color={colors.textMuted} />
+                <Ionicons name="flask-outline" size={rw(22)} color={colors.textMuted} />
                 <View style={styles.resultInfo}>
                   <Text style={styles.resultBrand} numberOfLines={1}>
                     {item.brand}
@@ -123,7 +148,7 @@ export function SearchScreen({ navigation }: Props) {
                 >
                   <Ionicons
                     name={wishlisted ? 'heart' : 'heart-outline'}
-                    size={20}
+                    size={rw(20)}
                     color={wishlisted ? colors.primary : colors.textMuted}
                   />
                 </TouchableOpacity>
@@ -157,7 +182,7 @@ const styles = StyleSheet.create({
     flex: 1,
     minWidth: 0,
     paddingVertical: spacing.sm,
-    fontSize: 15,
+    fontSize: rf(15),
     color: colors.text,
   },
   loading: {
@@ -178,15 +203,15 @@ const styles = StyleSheet.create({
     minWidth: 0,
   },
   resultBrand: {
-    fontSize: 11,
+    fontSize: rf(11),
     fontWeight: '700',
     color: colors.textMuted,
     textTransform: 'uppercase',
   },
   resultName: {
-    fontSize: 14,
+    fontSize: rf(14),
     fontWeight: '600',
     color: colors.text,
-    marginTop: 1,
+    marginTop: rh(1),
   },
 });

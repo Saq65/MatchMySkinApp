@@ -7,6 +7,7 @@ import { ScreenHeader } from '../components/ScreenHeader';
 import { useAuth } from '../context/AuthContext';
 import type { RootStackParamList } from '../navigation/types';
 import { colors } from '../theme/colors';
+import { rf, rw } from '../theme/responsive';
 import { spacing } from '../theme/spacing';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'Settings'>;
@@ -22,7 +23,7 @@ export function SettingsScreen({ navigation }: Props) {
 
       <View style={styles.section}>
         <View style={styles.row}>
-          <Ionicons name="notifications-outline" size={20} color={colors.text} />
+          <Ionicons name="notifications-outline" size={rw(20)} color={colors.text} />
           <Text style={styles.rowLabel}>Push notifications</Text>
           <Switch
             value={notifications}
@@ -31,7 +32,7 @@ export function SettingsScreen({ navigation }: Props) {
           />
         </View>
         <View style={styles.row}>
-          <Ionicons name="pricetag-outline" size={20} color={colors.text} />
+          <Ionicons name="pricetag-outline" size={rw(20)} color={colors.text} />
           <Text style={styles.rowLabel}>Price-drop alerts</Text>
           <Switch
             value={priceDropAlerts}
@@ -43,19 +44,19 @@ export function SettingsScreen({ navigation }: Props) {
 
       <View style={styles.section}>
         <TouchableOpacity style={styles.row} activeOpacity={0.7}>
-          <Ionicons name="shield-checkmark-outline" size={20} color={colors.text} />
+          <Ionicons name="shield-checkmark-outline" size={rw(20)} color={colors.text} />
           <Text style={styles.rowLabel}>Privacy policy</Text>
-          <Ionicons name="chevron-forward" size={18} color={colors.tabInactive} />
+          <Ionicons name="chevron-forward" size={rw(18)} color={colors.tabInactive} />
         </TouchableOpacity>
         <TouchableOpacity style={styles.row} activeOpacity={0.7}>
-          <Ionicons name="help-circle-outline" size={20} color={colors.text} />
+          <Ionicons name="help-circle-outline" size={rw(20)} color={colors.text} />
           <Text style={styles.rowLabel}>Help & support</Text>
-          <Ionicons name="chevron-forward" size={18} color={colors.tabInactive} />
+          <Ionicons name="chevron-forward" size={rw(18)} color={colors.tabInactive} />
         </TouchableOpacity>
       </View>
 
       <TouchableOpacity style={styles.logoutButton} onPress={logout} activeOpacity={0.8}>
-        <Ionicons name="log-out-outline" size={18} color={colors.danger} />
+        <Ionicons name="log-out-outline" size={rw(18)} color={colors.danger} />
         <Text style={styles.logoutLabel}>Log out</Text>
       </TouchableOpacity>
     </SafeAreaView>
@@ -81,7 +82,7 @@ const styles = StyleSheet.create({
   },
   rowLabel: {
     flex: 1,
-    fontSize: 15,
+    fontSize: rf(15),
     fontWeight: '500',
     color: colors.text,
   },
@@ -95,7 +96,7 @@ const styles = StyleSheet.create({
     paddingVertical: spacing.md,
   },
   logoutLabel: {
-    fontSize: 15,
+    fontSize: rf(15),
     fontWeight: '700',
     color: colors.danger,
   },

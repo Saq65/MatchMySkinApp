@@ -8,6 +8,7 @@ import { ProductCard } from '../components/ProductCard';
 import { useShop } from '../context/ShopContext';
 import type { MainTabParamList, RootStackParamList } from '../navigation/types';
 import { colors } from '../theme/colors';
+import { rf } from '../theme/responsive';
 import { spacing } from '../theme/spacing';
 
 type Props = CompositeScreenProps<
@@ -58,7 +59,7 @@ const styles = StyleSheet.create({
     backgroundColor: colors.background,
   },
   title: {
-    fontSize: 22,
+    fontSize: rf(22),
     fontWeight: '700',
     color: colors.text,
     paddingHorizontal: spacing.lg,

@@ -1,5 +1,6 @@
 import { StyleSheet, Text, TouchableOpacity } from 'react-native';
 import { colors } from '../theme/colors';
+import { rf, rh, rw } from '../theme/responsive';
 
 type Props = {
   label: string;
@@ -23,8 +24,8 @@ export function PrimaryButton({ label, onPress, disabled }: Props) {
 const styles = StyleSheet.create({
   button: {
     backgroundColor: colors.text,
-    borderRadius: 14,
-    paddingVertical: 16,
+    borderRadius: rw(14),
+    paddingVertical: rh(16),
     alignItems: 'center',
   },
   buttonDisabled: {
@@ -32,7 +33,7 @@ const styles = StyleSheet.create({
   },
   label: {
     color: colors.surface,
-    fontSize: 16,
+    fontSize: rf(16),
     fontWeight: '700',
   },
 });

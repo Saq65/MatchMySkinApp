@@ -45,25 +45,12 @@ export async function submitQuizResult(
   });
 }
 
-type RoutineEntry = {
-  tier: string;
-  period: 'am' | 'pm';
-  slot: string;
-  label: string;
-  product: RoutineProduct;
-};
-
-type RoutineTier = {
-  label: string;
-  description: string;
-  am?: RoutineEntry[];
-  pm?: RoutineEntry[];
-};
-
 type RecommendResponse = {
-  routine: {
-    tiers: Record<string, RoutineTier>;
-  };
+  // The full scored catalog (score-desc sorted, capped at `limit`) — the
+  // `routine` field alongside this is a curated AM/PM slot picker built from
+  // the same data and isn't what we want for a general "your matches" list.
+  products: RoutineProduct[];
+  total_matches: number;
 };
 
 export async function fetchRecommendedProducts(
@@ -75,14 +62,5 @@ export async function fetchRecommendedProducts(
     body: { ...profile, limit },
   });
 
-  const byId = new Map<string, RoutineProduct>();
-  Object.values(response.routine?.tiers || {}).forEach(tier => {
-    [...(tier.am || []), ...(tier.pm || [])].forEach(entry => {
-      if (entry.product) {
-        byId.set(entry.product.product_uid, entry.product);
-      }
-    });
-  });
-
-  return [...byId.values()].sort((a, b) => b.score - a.score);
+  return response.products;
 }

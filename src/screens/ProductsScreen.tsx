@@ -1,11 +1,12 @@
 import { Ionicons } from '@react-native-vector-icons/ionicons/static';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
-import { CompositeScreenProps } from '@react-navigation/native';
+import { CompositeScreenProps, useFocusEffect } from '@react-navigation/native';
 import type { BottomTabScreenProps } from '@react-navigation/bottom-tabs';
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import {
   ActivityIndicator,
   FlatList,
+  RefreshControl,
   StyleSheet,
   Text,
   TouchableOpacity,
@@ -17,103 +18,113 @@ import { FilterSheet } from '../components/FilterSheet';
 import { ProductCard } from '../components/ProductCard';
 import { SortSheet } from '../components/SortSheet';
 import { useShop } from '../context/ShopContext';
-import { fetchProductFacets, type ProductFacets } from '../services/facetsApi';
+import { fetchRecommendedProducts, type QuizProfile } from '../services/quizApi';
+import { getStoredQuizProfile } from '../services/quizProfileStorage';
 import {
-  EMPTY_FILTERS,
-  fetchRetailerProducts,
-  type ProductFilterState,
-  type SortOption,
-} from '../services/productsApi';
+  activeMatchesFilterCount,
+  applyMatchesFilters,
+  computeMatchesFacets,
+  EMPTY_MATCHES_FILTERS,
+  type MatchesFilterState,
+} from '../services/matchesFilters';
 import type { MainTabParamList, RootStackParamList } from '../navigation/types';
-import { productFromRetailer, type Product } from '../types/product';
+import { productFromRoutine, type Product } from '../types/product';
 import { colors } from '../theme/colors';
-import { spacing } from '../theme/spacing';
+import { rf, rh, rw } from '../theme/responsive';
+import { radii, spacing } from '../theme/spacing';
 
 type Props = CompositeScreenProps<
   BottomTabScreenProps<MainTabParamList, 'Products'>,
   NativeStackScreenProps<RootStackParamList>
 >;
 
+type SortOption = 'score_desc' | 'score_asc' | 'price_asc' | 'price_desc' | 'name_asc';
+
+const SORT_OPTIONS: Array<{ value: SortOption; label: string }> = [
+  { value: 'score_desc', label: 'Best match' },
+  { value: 'score_asc', label: 'Lowest match' },
+  { value: 'price_asc', label: 'Price: Low to High' },
+  { value: 'price_desc', label: 'Price: High to Low' },
+  { value: 'name_asc', label: 'Name: A to Z' },
+];
+
 const SORT_LABELS: Record<SortOption, string> = {
-  newest: 'Newest',
-  rating: 'Top rated',
+  score_desc: 'Best match',
+  score_asc: 'Lowest match',
   price_asc: 'Price: Low to High',
   price_desc: 'Price: High to Low',
   name_asc: 'Name: A to Z',
 };
 
-function activeFilterCount(filters: ProductFilterState): number {
-  return (
-    filters.brands.length +
-    filters.categories.length +
-    filters.priceRanges.length +
-    (filters.minRating !== null ? 1 : 0)
-  );
+function sortProducts(products: Product[], sort: SortOption): Product[] {
+  const sorted = [...products];
+  switch (sort) {
+    case 'score_desc':
+      return sorted.sort((a, b) => (b.matchScore ?? 0) - (a.matchScore ?? 0));
+    case 'score_asc':
+      return sorted.sort((a, b) => (a.matchScore ?? 0) - (b.matchScore ?? 0));
+    case 'price_asc':
+      return sorted.sort((a, b) => a.price - b.price);
+    case 'price_desc':
+      return sorted.sort((a, b) => b.price - a.price);
+    case 'name_asc':
+      return sorted.sort((a, b) => a.name.localeCompare(b.name));
+    default:
+      return sorted;
+  }
 }
 
 export function ProductsScreen({ navigation, route }: Props) {
   const { width } = useWindowDimensions();
   const numColumns = width >= 700 ? 4 : width >= 500 ? 3 : 2;
   const { isWishlisted, toggleWishlist } = useShop();
-  const [products, setProducts] = useState<Product[] | null>(null);
-  const [error, setError] = useState(false);
 
-  const [sort, setSort] = useState<SortOption>('newest');
-  const [filters, setFilters] = useState<ProductFilterState>(EMPTY_FILTERS);
+  const [quizProfile, setQuizProfile] = useState<QuizProfile | null | undefined>(undefined);
+  const [allMatches, setAllMatches] = useState<Product[] | null>(null);
+  const [error, setError] = useState(false);
+  const [refreshing, setRefreshing] = useState(false);
+
+  const [sort, setSort] = useState<SortOption>('score_desc');
+  const [filters, setFilters] = useState<MatchesFilterState>(EMPTY_MATCHES_FILTERS);
   const [sortOpen, setSortOpen] = useState(false);
   const [filterOpen, setFilterOpen] = useState(false);
-  const [facets, setFacets] = useState<ProductFacets | null>(null);
-  const [facetsLoading, setFacetsLoading] = useState(false);
+
+  // Re-check on every focus so completing the quiz and coming back here
+  // immediately unlocks the catalog, without needing a remount.
+  useFocusEffect(
+    useCallback(() => {
+      let cancelled = false;
+      getStoredQuizProfile()
+        .then(stored => {
+          if (!cancelled) {
+            setQuizProfile(stored);
+          }
+        })
+        .catch(err => {
+          console.warn('[quizProfileStorage] read failed:', err);
+          if (!cancelled) {
+            setQuizProfile(null);
+          }
+        });
+      return () => {
+        cancelled = true;
+      };
+    }, []),
+  );
 
   useEffect(() => {
-    let cancelled = false;
-    setFacetsLoading(true);
-    fetchProductFacets()
-      .then(response => {
-        if (!cancelled) {
-          setFacets(response);
-        }
-      })
-      .catch(() => {})
-      .finally(() => {
-        if (!cancelled) {
-          setFacetsLoading(false);
-        }
-      });
-    return () => {
-      cancelled = true;
-    };
-  }, []);
-
-  const initialCategory = route.params?.category;
-
-  // Home's "Search by product" cards pass a category to jump straight into;
-  // react to it even if the Products tab is already mounted from a previous visit.
-  useEffect(() => {
-    if (initialCategory) {
-      setFilters(prev => ({ ...prev, categories: [initialCategory] }));
+    if (!quizProfile) {
+      setAllMatches(null);
+      return;
     }
-  }, [initialCategory]);
-
-  useEffect(() => {
     let cancelled = false;
-    setProducts(null);
+    setAllMatches(null);
     setError(false);
-    fetchRetailerProducts({
-      limit: 40,
-      sort,
-      brand: filters.brands.length ? filters.brands : undefined,
-      category: filters.categories.length ? filters.categories : undefined,
-      priceRanges: filters.priceRanges.length ? filters.priceRanges : undefined,
-      minRating: filters.minRating ?? undefined,
-    })
-      .then(response => {
-        if (cancelled) return;
-        let items = response.products.map(productFromRetailer);
-        if (sort === 'name_asc') {
-          items = [...items].sort((a, b) => a.name.localeCompare(b.name));
+    fetchRecommendedProducts(quizProfile, 409)
+      .then(items => {
+        if (!cancelled) {
+          setAllMatches(items.map(productFromRoutine));
         }
-        setProducts(items);
       })
       .catch(() => {
         if (!cancelled) {
@@ -123,9 +134,62 @@ export function ProductsScreen({ navigation, route }: Props) {
     return () => {
       cancelled = true;
     };
-  }, [sort, filters]);
+  }, [quizProfile]);
 
-  const filterCount = activeFilterCount(filters);
+  const bodyArea = route.params?.bodyArea;
+  const productType = route.params?.productType;
+  const brand = route.params?.brand;
+
+  // Home's "Search by category/product" cards pass a body area or product
+  // type to jump straight into (or null to explicitly clear it, e.g. "Face"
+  // has no distinct body-area tag of its own). React to it even if this tab
+  // is already mounted from a previous visit. `undefined` means "no param at
+  // all" — e.g. pressing the tab directly — so leave filters as they were.
+  useEffect(() => {
+    if (bodyArea === undefined) return;
+    setFilters(prev => ({
+      ...prev,
+      bodyAreas: bodyArea ? [bodyArea] : [],
+    }));
+  }, [bodyArea]);
+
+  useEffect(() => {
+    if (productType === undefined) return;
+    setFilters(prev => ({
+      ...prev,
+      productTypes: productType ? [productType] : [],
+    }));
+  }, [productType]);
+
+  useEffect(() => {
+    if (brand === undefined) return;
+    setFilters(prev => ({
+      ...prev,
+      brands: brand ? [brand] : [],
+    }));
+  }, [brand]);
+
+  const facets = useMemo(() => computeMatchesFacets(allMatches ?? []), [allMatches]);
+  const displayed = useMemo(() => {
+    if (!allMatches) return null;
+    return sortProducts(applyMatchesFilters(allMatches, filters), sort);
+  }, [allMatches, filters, sort]);
+
+  const filterCount = activeMatchesFilterCount(filters);
+
+  const onRefresh = useCallback(async () => {
+    if (!quizProfile) return;
+    setRefreshing(true);
+    try {
+      const items = await fetchRecommendedProducts(quizProfile, 409);
+      setAllMatches(items.map(productFromRoutine));
+      setError(false);
+    } catch {
+      setError(true);
+    } finally {
+      setRefreshing(false);
+    }
+  }, [quizProfile]);
 
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
@@ -135,65 +199,90 @@ export function ProductsScreen({ navigation, route }: Props) {
           onPress={() => navigation.navigate('Search')}
           hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
         >
-          <Ionicons name="search-outline" size={24} color={colors.text} />
+          <Ionicons name="search-outline" size={rw(24)} color={colors.text} />
         </TouchableOpacity>
       </View>
 
-      <View style={styles.toolbar}>
-        <TouchableOpacity style={styles.toolbarButton} onPress={() => setSortOpen(true)}>
-          <Ionicons name="swap-vertical-outline" size={15} color={colors.text} />
-          <View>
-            <Text style={styles.toolbarLabel}>Sort By</Text>
-            <Text style={styles.toolbarValue}>{SORT_LABELS[sort]}</Text>
-          </View>
-        </TouchableOpacity>
-
-        <TouchableOpacity style={styles.toolbarButton} onPress={() => setFilterOpen(true)}>
-          <Ionicons name="filter-outline" size={15} color={colors.text} />
-          <View>
-            <Text style={styles.toolbarLabel}>Filter</Text>
-            <Text style={styles.toolbarValue}>
-              {filterCount > 0 ? `${filterCount} applied` : 'Apply filter'}
-            </Text>
-          </View>
-        </TouchableOpacity>
-      </View>
-
-      {error ? (
-        <Text style={styles.errorText}>Couldn't load products. Check your connection.</Text>
-      ) : !products ? (
-        <ActivityIndicator color={colors.text} style={styles.loading} />
-      ) : products.length === 0 ? (
-        <Text style={styles.errorText}>No products match these filters.</Text>
+      {quizProfile === null ? (
+        <View style={styles.centered}>
+          <Text style={styles.promptText}>
+            Take the skin quiz to see products scored specifically for you.
+          </Text>
+          <TouchableOpacity
+            style={styles.quizButton}
+            onPress={() => navigation.navigate('Quiz')}
+            activeOpacity={0.85}
+          >
+            <Text style={styles.quizButtonText}>Take the skin quiz</Text>
+          </TouchableOpacity>
+        </View>
       ) : (
-        <FlatList
-          key={numColumns}
-          data={products}
-          keyExtractor={item => item.id}
-          numColumns={numColumns}
-          columnWrapperStyle={styles.row}
-          contentContainerStyle={styles.listContent}
-          renderItem={({ item }) => (
-            <ProductCard
-              product={item}
-              wishlisted={isWishlisted(item.id)}
-              onPress={() => navigation.navigate('ProductDetails', { product: item })}
-              onToggleWishlist={() => toggleWishlist(item)}
+        <>
+          <View style={styles.toolbar}>
+            <TouchableOpacity style={styles.toolbarButton} onPress={() => setSortOpen(true)}>
+              <Ionicons name="swap-vertical-outline" size={rw(15)} color={colors.text} />
+              <View>
+                <Text style={styles.toolbarLabel}>Sort By</Text>
+                <Text style={styles.toolbarValue}>{SORT_LABELS[sort]}</Text>
+              </View>
+            </TouchableOpacity>
+
+            <TouchableOpacity style={styles.toolbarButton} onPress={() => setFilterOpen(true)}>
+              <Ionicons name="filter-outline" size={rw(15)} color={colors.text} />
+              <View>
+                <Text style={styles.toolbarLabel}>Filter</Text>
+                <Text style={styles.toolbarValue}>
+                  {filterCount > 0 ? `${filterCount} applied` : 'Apply filter'}
+                </Text>
+              </View>
+            </TouchableOpacity>
+          </View>
+
+          {error ? (
+            <Text style={styles.errorText}>Couldn't load products. Check your connection.</Text>
+          ) : !displayed ? (
+            <ActivityIndicator color={colors.text} style={styles.loading} />
+          ) : displayed.length === 0 ? (
+            <Text style={styles.errorText}>No matches found.</Text>
+          ) : (
+            <FlatList
+              key={numColumns}
+              data={displayed}
+              keyExtractor={item => item.id}
+              numColumns={numColumns}
+              columnWrapperStyle={styles.row}
+              contentContainerStyle={styles.listContent}
+              refreshControl={
+                <RefreshControl
+                  refreshing={refreshing}
+                  onRefresh={onRefresh}
+                  tintColor={colors.primary}
+                  colors={[colors.primary]}
+                />
+              }
+              renderItem={({ item }) => (
+                <ProductCard
+                  product={item}
+                  wishlisted={isWishlisted(item.id)}
+                  onPress={() => navigation.navigate('ProductDetails', { product: item })}
+                  onToggleWishlist={() => toggleWishlist(item)}
+                />
+              )}
             />
           )}
-        />
+        </>
       )}
 
       <SortSheet
         visible={sortOpen}
         value={sort}
+        options={SORT_OPTIONS}
         onApply={setSort}
         onClose={() => setSortOpen(false)}
       />
       <FilterSheet
         visible={filterOpen}
         facets={facets}
-        loadingFacets={facetsLoading}
         value={filters}
         onApply={setFilters}
         onClose={() => setFilterOpen(false)}
@@ -215,7 +304,7 @@ const styles = StyleSheet.create({
     paddingBottom: spacing.md,
   },
   title: {
-    fontSize: 22,
+    fontSize: rf(22),
     fontWeight: '700',
     color: colors.text,
   },
@@ -235,14 +324,38 @@ const styles = StyleSheet.create({
     paddingVertical: spacing.sm,
   },
   toolbarLabel: {
-    fontSize: 12,
+    fontSize: rf(12),
     fontWeight: '700',
     color: colors.text,
   },
   toolbarValue: {
-    fontSize: 11,
+    fontSize: rf(11),
     color: colors.textMuted,
-    marginTop: 1,
+    marginTop: rh(1),
+  },
+  centered: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingHorizontal: spacing.xl,
+    gap: spacing.md,
+  },
+  promptText: {
+    fontSize: rf(14),
+    color: colors.textMuted,
+    textAlign: 'center',
+    lineHeight: rf(20),
+  },
+  quizButton: {
+    backgroundColor: colors.text,
+    borderRadius: radii.md,
+    paddingVertical: rh(14),
+    paddingHorizontal: spacing.xl,
+  },
+  quizButtonText: {
+    color: colors.surface,
+    fontWeight: '700',
+    fontSize: rf(14),
   },
   errorText: {
     paddingHorizontal: spacing.lg,

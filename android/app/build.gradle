@@ -85,6 +85,18 @@ android {
         versionCode 1
         versionName "1.0"
     }
+    // The NDK-bundled CMake (3.22.1) ships Ninja 1.10.2, which hard-fails on
+    // Windows once a generated object path exceeds 260 characters -- and the
+    // Fabric codegen paths for libraries like react-native-gesture-handler
+    // routinely do. CMake 3.31.6+ bundles a Ninja build (1.12+) that supports
+    // long paths, so pin to it explicitly (installed via `sdkmanager
+    // "cmake;3.31.6"`).
+    externalNativeBuild {
+        cmake {
+            version "3.31.6"
+        }
+    }
+
     signingConfigs {
         debug {
             storeFile file('debug.keystore')

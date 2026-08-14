@@ -1,13 +1,15 @@
+import { rw } from './responsive';
+
 export const spacing = {
-  xs: 4,
-  sm: 8,
-  md: 16,
-  lg: 24,
-  xl: 32,
+  xs: rw(4),
+  sm: rw(8),
+  md: rw(16),
+  lg: rw(24),
+  xl: rw(32),
 };
 
 export const radii = {
-  sm: 8,
-  md: 14,
-  lg: 20,
+  sm: rw(8),
+  md: rw(14),
+  lg: rw(20),
 };

@@ -1,5 +1,6 @@
 import { StyleSheet, View } from 'react-native';
 import { colors } from '../theme/colors';
+import { rh, rw } from '../theme/responsive';
 
 type Props = {
   current: number;
@@ -18,14 +19,14 @@ export function ProgressBar({ current, total }: Props) {
 
 const styles = StyleSheet.create({
   track: {
-    height: 6,
-    borderRadius: 3,
+    height: rh(6),
+    borderRadius: rw(3),
     backgroundColor: colors.progressTrack,
     overflow: 'hidden',
   },
   fill: {
     height: '100%',
-    borderRadius: 3,
+    borderRadius: rw(3),
     backgroundColor: colors.primary,
   },
 });

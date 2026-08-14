@@ -11,6 +11,7 @@ import { saveQuizProfile } from '../services/quizProfileStorage';
 import type { RootStackParamList } from '../navigation/types';
 import { productFromRoutine, type Product } from '../types/product';
 import { colors } from '../theme/colors';
+import { rf, rh, rw } from '../theme/responsive';
 import { spacing } from '../theme/spacing';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'QuizResults'>;
@@ -107,11 +108,11 @@ const styles = StyleSheet.create({
     flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
-    paddingHorizontal: 24,
-    gap: 16,
+    paddingHorizontal: rw(24),
+    gap: rw(16),
   },
   errorText: {
-    fontSize: 15,
+    fontSize: rf(15),
     color: colors.textMuted,
     textAlign: 'center',
   },
@@ -121,16 +122,16 @@ const styles = StyleSheet.create({
     paddingBottom: spacing.lg,
   },
   title: {
-    fontSize: 24,
+    fontSize: rf(24),
     fontWeight: '700',
     color: colors.text,
-    marginBottom: 6,
+    marginBottom: rh(6),
   },
   subtitle: {
-    fontSize: 14,
+    fontSize: rf(14),
     color: colors.textMuted,
     marginBottom: spacing.lg,
-    lineHeight: 20,
+    lineHeight: rf(20),
   },
   grid: {
     flexDirection: 'row',
@@ -144,13 +145,13 @@ const styles = StyleSheet.create({
   viewAllButton: {
     borderWidth: 1.5,
     borderColor: colors.text,
-    borderRadius: 14,
-    paddingVertical: 14,
+    borderRadius: rw(14),
+    paddingVertical: rh(14),
     alignItems: 'center',
     marginTop: spacing.xl,
   },
   viewAllButtonText: {
-    fontSize: 14,
+    fontSize: rf(14),
     fontWeight: '700',
     color: colors.text,
   },

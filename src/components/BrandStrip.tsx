@@ -1,5 +1,6 @@
 import { ScrollView, StyleSheet, Text } from 'react-native';
 import { colors } from '../theme/colors';
+import { rf, rh } from '../theme/responsive';
 import { spacing } from '../theme/spacing';
 
 type Props = {
@@ -33,12 +34,12 @@ const styles = StyleSheet.create({
   },
   content: {
     paddingHorizontal: spacing.lg,
-    paddingVertical: 14,
+    paddingVertical: rh(14),
     alignItems: 'center',
     gap: spacing.xl,
   },
   brand: {
-    fontSize: 15,
+    fontSize: rf(15),
     fontWeight: '700',
     color: colors.text,
   },

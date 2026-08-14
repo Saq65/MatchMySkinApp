@@ -1,25 +1,26 @@
 import { Modal, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import type { SortOption } from '../services/productsApi';
 import { colors } from '../theme/colors';
+import { rf, rh, rw } from '../theme/responsive';
 import { radii, spacing } from '../theme/spacing';
 
-const SORT_OPTIONS: Array<{ value: SortOption; label: string }> = [
-  { value: 'newest', label: 'Newest' },
-  { value: 'rating', label: 'Top rated' },
-  { value: 'price_asc', label: 'Price: Low to High' },
-  { value: 'price_desc', label: 'Price: High to Low' },
-  { value: 'name_asc', label: 'Name: A to Z' },
-];
-
-type Props = {
+type Props<T extends string> = {
   visible: boolean;
-  value: SortOption;
-  onApply: (value: SortOption) => void;
+  value: T;
+  options: Array<{ value: T; label: string }>;
+  onApply: (value: T) => void;
   onClose: () => void;
+  title?: string;
 };
 
-export function SortSheet({ visible, value, onApply, onClose }: Props) {
+export function SortSheet<T extends string>({
+  visible,
+  value,
+  options,
+  onApply,
+  onClose,
+  title = 'Sort By',
+}: Props<T>) {
   const insets = useSafeAreaInsets();
   return (
     <Modal visible={visible} transparent animationType="fade" onRequestClose={onClose}>
@@ -28,8 +29,8 @@ export function SortSheet({ visible, value, onApply, onClose }: Props) {
           style={[styles.sheet, { paddingBottom: Math.max(insets.bottom, spacing.xl) }]}
           activeOpacity={1}
         >
-          <Text style={styles.title}>Sort By</Text>
-          {SORT_OPTIONS.map(option => (
+          <Text style={styles.title}>{title}</Text>
+          {options.map(option => (
             <TouchableOpacity
               key={option.value}
               style={styles.row}
@@ -65,7 +66,7 @@ const styles = StyleSheet.create({
     paddingBottom: spacing.xl,
   },
   title: {
-    fontSize: 17,
+    fontSize: rf(17),
     fontWeight: '700',
     color: colors.text,
     marginBottom: spacing.sm,
@@ -74,18 +75,18 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    paddingVertical: 14,
+    paddingVertical: rh(14),
     borderTopWidth: 1,
     borderTopColor: colors.border,
   },
   rowLabel: {
-    fontSize: 15,
+    fontSize: rf(15),
     color: colors.text,
   },
   radio: {
-    width: 20,
-    height: 20,
-    borderRadius: 10,
+    width: rw(20),
+    height: rw(20),
+    borderRadius: rw(10),
     borderWidth: 1.5,
     borderColor: colors.border,
     alignItems: 'center',
@@ -95,9 +96,9 @@ const styles = StyleSheet.create({
     borderColor: colors.primary,
   },
   radioDot: {
-    width: 10,
-    height: 10,
-    borderRadius: 5,
+    width: rw(10),
+    height: rw(10),
+    borderRadius: rw(5),
     backgroundColor: colors.primary,
   },
 });

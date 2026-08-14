@@ -19,6 +19,7 @@ import { useAuth } from '../../context/AuthContext';
 import { exchangeMsg91Token } from '../../services/authApi';
 import type { RootStackParamList } from '../../navigation/types';
 import { colors } from '../../theme/colors';
+import { rf, rh, rw } from '../../theme/responsive';
 import { radii, spacing } from '../../theme/spacing';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'Login'>;
@@ -128,7 +129,7 @@ export function LoginScreen({ navigation }: Props) {
           onPress={goBack}
           hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
         >
-          <Ionicons name="arrow-back" size={20} color={colors.text} />
+          <Ionicons name="arrow-back" size={rw(20)} color={colors.text} />
         </TouchableOpacity>
 
         <ScrollView
@@ -142,7 +143,7 @@ export function LoginScreen({ navigation }: Props) {
             </Text>
 
             <View style={styles.avatar}>
-              <Ionicons name="person" size={30} color={colors.tabInactive} />
+              <Ionicons name="person" size={rw(30)} color={colors.tabInactive} />
             </View>
 
             {error && <Text style={styles.errorText}>{error}</Text>}
@@ -196,7 +197,7 @@ export function LoginScreen({ navigation }: Props) {
                   onPress={handleGoogle}
                   activeOpacity={0.8}
                 >
-                  <Ionicons name="logo-google" size={18} color="#DB4437" />
+                  <Ionicons name="logo-google" size={rw(18)} color="#DB4437" />
                   <Text style={styles.googleButtonText}>Continue with Google</Text>
                 </TouchableOpacity>
 
@@ -264,9 +265,9 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   backButton: {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
+    width: rw(36),
+    height: rw(36),
+    borderRadius: rw(18),
     backgroundColor: colors.surface,
     borderWidth: 1,
     borderColor: colors.border,
@@ -290,30 +291,30 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   cardTitle: {
-    fontSize: 13,
+    fontSize: rf(13),
     fontWeight: '800',
     color: colors.text,
     letterSpacing: 1,
     marginBottom: spacing.md,
   },
   avatar: {
-    width: 56,
-    height: 56,
-    borderRadius: 28,
+    width: rw(56),
+    height: rw(56),
+    borderRadius: rw(28),
     backgroundColor: colors.background,
     alignItems: 'center',
     justifyContent: 'center',
     marginBottom: spacing.lg,
   },
   errorText: {
-    fontSize: 13,
+    fontSize: rf(13),
     color: colors.danger,
     marginBottom: spacing.sm,
     textAlign: 'center',
   },
   label: {
     alignSelf: 'flex-start',
-    fontSize: 13,
+    fontSize: rf(13),
     fontWeight: '600',
     color: colors.text,
     marginBottom: spacing.xs,
@@ -331,10 +332,10 @@ const styles = StyleSheet.create({
   phonePrefix: {
     backgroundColor: colors.sage,
     paddingHorizontal: spacing.sm,
-    paddingVertical: 12,
+    paddingVertical: rh(12),
   },
   phonePrefixText: {
-    fontSize: 14,
+    fontSize: rf(14),
     fontWeight: '700',
     color: colors.text,
   },
@@ -342,8 +343,8 @@ const styles = StyleSheet.create({
     flex: 1,
     minWidth: 0,
     paddingHorizontal: spacing.sm,
-    paddingVertical: 12,
-    fontSize: 14,
+    paddingVertical: rh(12),
+    fontSize: rf(14),
     color: colors.text,
   },
   otpInput: {
@@ -352,8 +353,8 @@ const styles = StyleSheet.create({
     borderColor: colors.border,
     borderRadius: radii.sm,
     paddingHorizontal: spacing.md,
-    paddingVertical: 12,
-    fontSize: 16,
+    paddingVertical: rh(12),
+    fontSize: rf(16),
     letterSpacing: 4,
     textAlign: 'center',
     color: colors.text,
@@ -364,7 +365,7 @@ const styles = StyleSheet.create({
     borderWidth: 1.5,
     borderColor: colors.primary,
     borderRadius: radii.sm,
-    paddingVertical: 14,
+    paddingVertical: rh(14),
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -372,7 +373,7 @@ const styles = StyleSheet.create({
     borderColor: colors.primarySoft,
   },
   otpButtonText: {
-    fontSize: 14,
+    fontSize: rf(14),
     fontWeight: '700',
     color: colors.primary,
   },
@@ -392,7 +393,7 @@ const styles = StyleSheet.create({
     backgroundColor: colors.border,
   },
   dividerText: {
-    fontSize: 12,
+    fontSize: rf(12),
     color: colors.textMuted,
   },
   googleButton: {
@@ -404,10 +405,10 @@ const styles = StyleSheet.create({
     borderWidth: 1.5,
     borderColor: colors.border,
     borderRadius: radii.sm,
-    paddingVertical: 14,
+    paddingVertical: rh(14),
   },
   googleButtonText: {
-    fontSize: 14,
+    fontSize: rf(14),
     fontWeight: '600',
     color: colors.text,
   },
@@ -416,19 +417,19 @@ const styles = StyleSheet.create({
     flexWrap: 'wrap',
     justifyContent: 'center',
     marginTop: spacing.md,
-    gap: 6,
+    gap: rw(6),
   },
   trustText: {
-    fontSize: 11,
+    fontSize: rf(11),
     color: colors.primaryDark,
     fontWeight: '600',
   },
   trustDivider: {
-    fontSize: 11,
+    fontSize: rf(11),
     color: colors.border,
   },
   resendText: {
-    fontSize: 13,
+    fontSize: rf(13),
     fontWeight: '600',
     color: colors.primaryDark,
     marginTop: spacing.md,
