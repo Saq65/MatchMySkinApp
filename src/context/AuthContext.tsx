@@ -5,7 +5,8 @@ import {
   saveAuthSession,
   type AuthSession,
 } from '../services/authSession';
-import { notifyNewUpdate, requestLocalNotificationPermission } from '../services/localNotifications';
+import { requestLocalNotificationPermission } from '../services/localNotifications';
+import { scheduleOnboardingDrip } from '../services/notificationDrip';
 import { setStoredNotificationsEnabled } from '../services/notificationPrefsStorage';
 import { clearIdentifiedUser, identifyUser } from '../services/pushNotifications';
 
@@ -68,15 +69,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         identifyUser(newSession.user.id);
         // Login is the first meaningful, contextual moment to ask for
         // notification permission (welcome/price-drop/wishlist alerts) --
-        // a no-op if the OS already has an answer on file.
+        // a no-op if the OS already has an answer on file. Starts the same
+        // onboarding drip Settings' toggle does, so its own "welcome"
+        // message (fires 5 min later) covers this instead of a duplicate.
         requestLocalNotificationPermission()
           .then(granted => {
             if (granted) {
               setStoredNotificationsEnabled(true).catch(() => {});
-              notifyNewUpdate(
-                'Welcome to roopsee',
-                "You're all set — we'll let you know about price drops and new arrivals.",
-              );
+              scheduleOnboardingDrip();
             }
           })
           .catch(() => {});

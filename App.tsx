@@ -11,6 +11,7 @@ import { useEffect } from 'react';
 import { StatusBar, StyleSheet } from 'react-native';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { SafeAreaProvider, initialWindowMetrics } from 'react-native-safe-area-context';
+import { LocalNotificationHandler } from './src/components/LocalNotificationHandler';
 import { PushNotificationHandler } from './src/components/PushNotificationHandler';
 import { AuthProvider } from './src/context/AuthContext';
 import { ShopProvider } from './src/context/ShopContext';
@@ -21,10 +22,10 @@ import { navigationRef } from './src/navigation/navigationRef';
 import { RootNavigator } from './src/navigation/RootNavigator';
 import {
   hasLocalNotificationPermission,
-  scheduleEngagementReminder,
   setupNotificationChannels,
 } from './src/services/localNotifications';
 import { getStoredNotificationsEnabled } from './src/services/notificationPrefsStorage';
+import { scheduleOnboardingDrip } from './src/services/notificationDrip';
 import { initPushNotifications } from './src/services/pushNotifications';
 
 // Runs at module load, before any component mounts -- PushNotificationHandler's
@@ -54,6 +55,7 @@ function AppContent() {
         <RootNavigator />
       </NavigationContainer>
       <PushNotificationHandler />
+      <LocalNotificationHandler />
     </>
   );
 }
@@ -68,11 +70,13 @@ function App() {
     });
 
     setupNotificationChannels();
-    // Re-arm the repeating reminder on every launch -- covers the case where
-    // the OS killed it (e.g. after a device reboot) since the last session.
+    // Re-arm the drip on every launch -- covers the case where the OS
+    // cleared scheduled notifications (e.g. after a device reboot) since
+    // the last session. The stored anchor timestamp keeps day-zero fixed,
+    // so this only ever fills in what's missing rather than restarting it.
     getStoredNotificationsEnabled().then(async enabled => {
       if (enabled && (await hasLocalNotificationPermission())) {
-        scheduleEngagementReminder();
+        scheduleOnboardingDrip();
       }
     });
   }, []);

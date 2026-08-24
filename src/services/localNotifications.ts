@@ -1,17 +1,8 @@
-import notifee, {
-  AndroidImportance,
-  TimeUnit,
-  TriggerType,
-} from '@notifee/react-native';
+import notifee, { AndroidImportance } from '@notifee/react-native';
 
 export const CHANNEL_ENGAGEMENT = 'engagement';
 export const CHANNEL_UPDATES = 'updates';
 export const CHANNEL_PRICE_DROP = 'price_drop';
-
-// Fixed id so re-scheduling (e.g. on every app launch) replaces the existing
-// trigger instead of stacking duplicates.
-const ENGAGEMENT_REMINDER_ID = 'engagement-2h';
-const ENGAGEMENT_INTERVAL_HOURS = 2;
 
 let channelsReady = false;
 
@@ -46,30 +37,6 @@ export async function hasLocalNotificationPermission(): Promise<boolean> {
 export async function requestLocalNotificationPermission(): Promise<boolean> {
   const settings = await notifee.requestPermission();
   return settings.authorizationStatus >= 1;
-}
-
-// Repeats every 2 hours until cancelEngagementReminder() is called (e.g. the
-// user turns notifications off). Safe to call repeatedly -- same id replaces
-// the previous trigger rather than stacking a new one.
-export async function scheduleEngagementReminder(): Promise<void> {
-  await setupNotificationChannels();
-  await notifee.createTriggerNotification(
-    {
-      id: ENGAGEMENT_REMINDER_ID,
-      title: 'roopsee',
-      body: "Check out what's new since you last visited",
-      android: { channelId: CHANNEL_ENGAGEMENT },
-    },
-    {
-      type: TriggerType.INTERVAL,
-      interval: ENGAGEMENT_INTERVAL_HOURS,
-      timeUnit: TimeUnit.HOURS,
-    },
-  );
-}
-
-export async function cancelEngagementReminder(): Promise<void> {
-  await notifee.cancelTriggerNotification(ENGAGEMENT_REMINDER_ID);
 }
 
 export async function notifyNewUpdate(title: string, body: string): Promise<void> {

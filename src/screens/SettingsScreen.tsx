@@ -14,11 +14,10 @@ import {
   setStoredPriceDropAlertsEnabled,
 } from '../services/notificationPrefsStorage';
 import {
-  cancelEngagementReminder,
   hasLocalNotificationPermission,
   requestLocalNotificationPermission,
-  scheduleEngagementReminder,
 } from '../services/localNotifications';
+import { cancelOnboardingDrip, scheduleOnboardingDrip } from '../services/notificationDrip';
 import { setPriceDropAlertsTag } from '../services/pushNotifications';
 import type { ThemeColors } from '../theme/colors';
 import { rf, rw } from '../theme/responsive';
@@ -65,7 +64,7 @@ export function SettingsScreen({ navigation }: Props) {
     if (!value) {
       setNotifications(false);
       await setStoredNotificationsEnabled(false);
-      await cancelEngagementReminder();
+      await cancelOnboardingDrip();
       return;
     }
 
@@ -87,7 +86,7 @@ export function SettingsScreen({ navigation }: Props) {
 
     setNotifications(true);
     await setStoredNotificationsEnabled(true);
-    await scheduleEngagementReminder();
+    await scheduleOnboardingDrip();
   }, []);
 
   const onTogglePriceDropAlerts = useCallback(async (value: boolean) => {
