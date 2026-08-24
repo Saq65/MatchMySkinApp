@@ -1,8 +1,10 @@
 import { Modal, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { colors } from '../theme/colors';
+import { useTheme } from '../context/ThemeContext';
+import type { ThemeColors } from '../theme/colors';
 import { rf, rh, rw } from '../theme/responsive';
 import { radii, spacing } from '../theme/spacing';
+import { useThemedStyles } from '../theme/useThemedStyles';
 
 type Props<T extends string> = {
   visible: boolean;
@@ -21,6 +23,8 @@ export function SortSheet<T extends string>({
   onClose,
   title = 'Sort By',
 }: Props<T>) {
+  const { colors } = useTheme();
+  const styles = useThemedStyles(colors, createStyles);
   const insets = useSafeAreaInsets();
   return (
     <Modal visible={visible} transparent animationType="fade" onRequestClose={onClose}>
@@ -51,54 +55,55 @@ export function SortSheet<T extends string>({
   );
 }
 
-const styles = StyleSheet.create({
-  backdrop: {
-    flex: 1,
-    backgroundColor: 'rgba(0,0,0,0.35)',
-    justifyContent: 'flex-end',
-  },
-  sheet: {
-    backgroundColor: colors.surface,
-    borderTopLeftRadius: radii.lg,
-    borderTopRightRadius: radii.lg,
-    paddingHorizontal: spacing.lg,
-    paddingTop: spacing.md,
-    paddingBottom: spacing.xl,
-  },
-  title: {
-    fontSize: rf(17),
-    fontWeight: '700',
-    color: colors.text,
-    marginBottom: spacing.sm,
-  },
-  row: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingVertical: rh(14),
-    borderTopWidth: 1,
-    borderTopColor: colors.border,
-  },
-  rowLabel: {
-    fontSize: rf(15),
-    color: colors.text,
-  },
-  radio: {
-    width: rw(20),
-    height: rw(20),
-    borderRadius: rw(10),
-    borderWidth: 1.5,
-    borderColor: colors.border,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  radioSelected: {
-    borderColor: colors.primary,
-  },
-  radioDot: {
-    width: rw(10),
-    height: rw(10),
-    borderRadius: rw(5),
-    backgroundColor: colors.primary,
-  },
-});
+const createStyles = (colors: ThemeColors) =>
+  StyleSheet.create({
+    backdrop: {
+      flex: 1,
+      backgroundColor: 'rgba(0,0,0,0.35)',
+      justifyContent: 'flex-end',
+    },
+    sheet: {
+      backgroundColor: colors.surface,
+      borderTopLeftRadius: radii.lg,
+      borderTopRightRadius: radii.lg,
+      paddingHorizontal: spacing.lg,
+      paddingTop: spacing.md,
+      paddingBottom: spacing.xl,
+    },
+    title: {
+      fontSize: rf(17),
+      fontWeight: '700',
+      color: colors.text,
+      marginBottom: spacing.sm,
+    },
+    row: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+      paddingVertical: rh(14),
+      borderTopWidth: 1,
+      borderTopColor: colors.border,
+    },
+    rowLabel: {
+      fontSize: rf(15),
+      color: colors.text,
+    },
+    radio: {
+      width: rw(20),
+      height: rw(20),
+      borderRadius: rw(10),
+      borderWidth: 1.5,
+      borderColor: colors.border,
+      alignItems: 'center',
+      justifyContent: 'center',
+    },
+    radioSelected: {
+      borderColor: colors.primary,
+    },
+    radioDot: {
+      width: rw(10),
+      height: rw(10),
+      borderRadius: rw(5),
+      backgroundColor: colors.primary,
+    },
+  });

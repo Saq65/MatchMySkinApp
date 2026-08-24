@@ -1,7 +1,9 @@
 import { Image, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
-import { colors } from '../theme/colors';
+import { useTheme } from '../context/ThemeContext';
+import type { ThemeColors } from '../theme/colors';
 import { rf, rw } from '../theme/responsive';
 import { radii, spacing } from '../theme/spacing';
+import { useThemedStyles } from '../theme/useThemedStyles';
 
 const BRANDS = [
   { label: 'Laneige', brand: 'Laneige', image: require('../assets/Kbeauty/k1.png') },
@@ -18,6 +20,9 @@ type Props = {
 };
 
 export function SearchByKBeauty({ onSelect }: Props) {
+  const { colors } = useTheme();
+  const styles = useThemedStyles(colors, createStyles);
+
   return (
     <View style={styles.container}>
       <Text style={styles.heading}>Search K-Beauty</Text>
@@ -41,30 +46,31 @@ export function SearchByKBeauty({ onSelect }: Props) {
   );
 }
 
-const styles = StyleSheet.create({
-  container: {
-    marginBottom: spacing.lg,
-  },
-  heading: {
-    fontSize: rf(18),
-    fontWeight: '800',
-    color: colors.text,
-    textAlign: 'center',
-    letterSpacing: 0.5,
-    marginBottom: spacing.md,
-  },
-  row: {
-    gap: spacing.sm,
-  },
-  card: {
-    width: rw(220),
-    height: rw(160),
-    borderRadius: radii.lg,
-    overflow: 'hidden',
-    backgroundColor: colors.primarySoft,
-  },
-  image: {
-    width: '100%',
-    height: '100%',
-  },
-});
+const createStyles = (colors: ThemeColors) =>
+  StyleSheet.create({
+    container: {
+      marginTop: spacing.md,
+    },
+    heading: {
+      fontSize: rf(18),
+      fontWeight: '800',
+      color: colors.text,
+      textAlign: 'center',
+      letterSpacing: 0.5,
+      marginBottom: spacing.md,
+    },
+    row: {
+      gap: spacing.sm,
+    },
+    card: {
+      width: rw(220),
+      height: rw(160),
+      borderRadius: radii.lg,
+      overflow: 'hidden',
+      backgroundColor: colors.primarySoft,
+    },
+    image: {
+      width: '100%',
+      height: '100%',
+    },
+  });

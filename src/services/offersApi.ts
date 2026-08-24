@@ -11,6 +11,7 @@ export type ProductOffer = {
   mrp?: number;
   product_url: string;
   image_url?: string;
+  image_urls?: string[];
   in_stock?: boolean;
 };
 

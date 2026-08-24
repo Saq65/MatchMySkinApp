@@ -18,6 +18,7 @@ import { FilterSheet } from '../components/FilterSheet';
 import { ProductCard } from '../components/ProductCard';
 import { SortSheet } from '../components/SortSheet';
 import { useShop } from '../context/ShopContext';
+import { useTheme } from '../context/ThemeContext';
 import { fetchRecommendedProducts, type QuizProfile } from '../services/quizApi';
 import { getStoredQuizProfile } from '../services/quizProfileStorage';
 import {
@@ -29,9 +30,10 @@ import {
 } from '../services/matchesFilters';
 import type { MainTabParamList, RootStackParamList } from '../navigation/types';
 import { productFromRoutine, type Product } from '../types/product';
-import { colors } from '../theme/colors';
+import type { ThemeColors } from '../theme/colors';
 import { rf, rh, rw } from '../theme/responsive';
 import { radii, spacing } from '../theme/spacing';
+import { useThemedStyles } from '../theme/useThemedStyles';
 
 type Props = CompositeScreenProps<
   BottomTabScreenProps<MainTabParamList, 'Products'>,
@@ -75,6 +77,8 @@ function sortProducts(products: Product[], sort: SortOption): Product[] {
 }
 
 export function ProductsScreen({ navigation, route }: Props) {
+  const { colors } = useTheme();
+  const styles = useThemedStyles(colors, createStyles);
   const { width } = useWindowDimensions();
   const numColumns = width >= 700 ? 4 : width >= 500 ? 3 : 2;
   const { isWishlisted, toggleWishlist } = useShop();
@@ -291,7 +295,7 @@ export function ProductsScreen({ navigation, route }: Props) {
   );
 }
 
-const styles = StyleSheet.create({
+const createStyles = (colors: ThemeColors) => StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: colors.background,
@@ -301,7 +305,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'space-between',
     paddingHorizontal: spacing.lg,
-    paddingBottom: spacing.md,
+    paddingBottom: spacing.sm,
   },
   title: {
     fontSize: rf(22),

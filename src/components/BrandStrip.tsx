@@ -1,13 +1,18 @@
 import { ScrollView, StyleSheet, Text } from 'react-native';
-import { colors } from '../theme/colors';
+import { useTheme } from '../context/ThemeContext';
+import type { ThemeColors } from '../theme/colors';
 import { rf, rh } from '../theme/responsive';
 import { spacing } from '../theme/spacing';
+import { useThemedStyles } from '../theme/useThemedStyles';
 
 type Props = {
   brands: string[];
 };
 
 export function BrandStrip({ brands }: Props) {
+  const { colors } = useTheme();
+  const styles = useThemedStyles(colors, createStyles);
+
   if (brands.length === 0) {
     return null;
   }
@@ -28,19 +33,20 @@ export function BrandStrip({ brands }: Props) {
   );
 }
 
-const styles = StyleSheet.create({
-  container: {
-    backgroundColor: colors.lavender,
-  },
-  content: {
-    paddingHorizontal: spacing.lg,
-    paddingVertical: rh(14),
-    alignItems: 'center',
-    gap: spacing.xl,
-  },
-  brand: {
-    fontSize: rf(15),
-    fontWeight: '700',
-    color: colors.text,
-  },
-});
+const createStyles = (colors: ThemeColors) =>
+  StyleSheet.create({
+    container: {
+      backgroundColor: colors.lavender,
+    },
+    content: {
+      paddingHorizontal: spacing.lg,
+      paddingVertical: rh(14),
+      alignItems: 'center',
+      gap: spacing.xl,
+    },
+    brand: {
+      fontSize: rf(15),
+      fontWeight: '700',
+      color: colors.text,
+    },
+  });

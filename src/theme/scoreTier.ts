@@ -1,4 +1,4 @@
-import { colors } from './colors';
+import type { ThemeColors } from './colors';
 
 export type ScoreTier = {
   label: string;
@@ -7,7 +7,11 @@ export type ScoreTier = {
 
 // Prefers the API's own match_label (e.g. "Excellent Match") when present,
 // falling back to score thresholds only if it's missing.
-export function getScoreTier(matchLabel: string | undefined, score: number): ScoreTier {
+export function getScoreTier(
+  matchLabel: string | undefined,
+  score: number,
+  colors: ThemeColors,
+): ScoreTier {
   const normalized = (matchLabel ?? '').toLowerCase();
 
   if (normalized.includes('excellent') || normalized.includes('great')) {

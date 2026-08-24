@@ -1,9 +1,11 @@
 import { Ionicons } from '@react-native-vector-icons/ionicons/static';
 import { StyleSheet, Text, View } from 'react-native';
-import { colors } from '../theme/colors';
+import { useTheme } from '../context/ThemeContext';
+import type { ThemeColors } from '../theme/colors';
 import type { IoniconName } from '../theme/icons';
 import { rf, rw } from '../theme/responsive';
 import { spacing } from '../theme/spacing';
+import { useThemedStyles } from '../theme/useThemedStyles';
 
 type Props = {
   icon: IoniconName;
@@ -12,6 +14,9 @@ type Props = {
 };
 
 export function EmptyState({ icon, title, subtitle }: Props) {
+  const { colors } = useTheme();
+  const styles = useThemedStyles(colors, createStyles);
+
   return (
     <View style={styles.container}>
       <Ionicons name={icon} size={rw(48)} color={colors.tabInactive} />
@@ -21,24 +26,25 @@ export function EmptyState({ icon, title, subtitle }: Props) {
   );
 }
 
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingHorizontal: spacing.xl,
-  },
-  title: {
-    fontSize: rf(16),
-    fontWeight: '600',
-    color: colors.text,
-    marginTop: spacing.md,
-    textAlign: 'center',
-  },
-  subtitle: {
-    fontSize: rf(14),
-    color: colors.textMuted,
-    marginTop: spacing.xs,
-    textAlign: 'center',
-  },
-});
+const createStyles = (colors: ThemeColors) =>
+  StyleSheet.create({
+    container: {
+      flex: 1,
+      alignItems: 'center',
+      justifyContent: 'center',
+      paddingHorizontal: spacing.xl,
+    },
+    title: {
+      fontSize: rf(16),
+      fontWeight: '600',
+      color: colors.text,
+      marginTop: spacing.md,
+      textAlign: 'center',
+    },
+    subtitle: {
+      fontSize: rf(14),
+      color: colors.textMuted,
+      marginTop: spacing.xs,
+      textAlign: 'center',
+    },
+  });

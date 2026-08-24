@@ -1,7 +1,9 @@
 import { Image, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
-import { colors } from '../theme/colors';
+import { useTheme } from '../context/ThemeContext';
+import type { ThemeColors } from '../theme/colors';
 import { rf, rw } from '../theme/responsive';
 import { radii, spacing } from '../theme/spacing';
+import { useThemedStyles } from '../theme/useThemedStyles';
 
 // Matched to the real product_type values in the scored catalog (/recommend).
 // "Eye Cream" and "Lip Balm" have no matching product_type there yet — they'll
@@ -21,6 +23,9 @@ type Props = {
 };
 
 export function SearchByProduct({ onSelect }: Props) {
+  const { colors } = useTheme();
+  const styles = useThemedStyles(colors, createStyles);
+
   return (
     <View style={styles.container}>
       <Text style={styles.heading}>Search by product</Text>
@@ -49,48 +54,49 @@ export function SearchByProduct({ onSelect }: Props) {
   );
 }
 
-const styles = StyleSheet.create({
-  container: {
-    marginTop: spacing.sm,
-  },
-  heading: {
-    fontSize: rf(18),
-    fontWeight: '800',
-    color: colors.text,
-    textAlign: 'center',
-    letterSpacing: 0.5,
-    marginBottom: spacing.md,
-  },
-  row: {
-    gap: spacing.sm,
-  },
-  card: {
-    width: rw(108),
-    height: rw(130),
-    borderRadius: radii.lg,
-    overflow: 'hidden',
-    backgroundColor: colors.primarySoft,
-  },
-  image: {
-    width: '100%',
-    height: '100%',
-  },
-  labelWrap: {
-    position: 'absolute',
-    left: 0,
-    right: 0,
-    top: '42%',
-    alignItems: 'center',
-    paddingHorizontal: rw(4),
-  },
-  label: {
-    fontSize: rf(12),
-    fontWeight: '800',
-    color: colors.surface,
-    textTransform: 'uppercase',
-    letterSpacing: 0.5,
-    textShadowColor: 'rgba(0,0,0,0.55)',
-    textShadowOffset: { width: 0, height: 1 },
-    textShadowRadius: 3,
-  },
-});
+const createStyles = (colors: ThemeColors) =>
+  StyleSheet.create({
+    container: {
+      marginTop: spacing.sm,
+    },
+    heading: {
+      fontSize: rf(18),
+      fontWeight: '800',
+      color: colors.text,
+      textAlign: 'center',
+      letterSpacing: 0.5,
+      marginBottom: spacing.md,
+    },
+    row: {
+      gap: spacing.sm,
+    },
+    card: {
+      width: rw(108),
+      height: rw(130),
+      borderRadius: radii.lg,
+      overflow: 'hidden',
+      backgroundColor: colors.primarySoft,
+    },
+    image: {
+      width: '100%',
+      height: '100%',
+    },
+    labelWrap: {
+      position: 'absolute',
+      left: 0,
+      right: 0,
+      top: '42%',
+      alignItems: 'center',
+      paddingHorizontal: rw(4),
+    },
+    label: {
+      fontSize: rf(12),
+      fontWeight: '800',
+      color: colors.surface,
+      textTransform: 'uppercase',
+      letterSpacing: 0.5,
+      textShadowColor: 'rgba(0,0,0,0.55)',
+      textShadowOffset: { width: 0, height: 1 },
+      textShadowRadius: 3,
+    },
+  });

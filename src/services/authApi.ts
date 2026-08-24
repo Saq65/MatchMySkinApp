@@ -17,3 +17,12 @@ export async function exchangeMsg91Token(accessToken: string): Promise<VerifyOtp
     body: { accessToken },
   });
 }
+
+// Exchanges a Google ID token for a real Supabase session — mirrors the OTP
+// flow above, but the backend verifies the token against Google instead of MSG91.
+export async function exchangeGoogleToken(idToken: string): Promise<VerifyOtpResponse> {
+  return apiRequest<VerifyOtpResponse>('/auth/google', {
+    method: 'POST',
+    body: { idToken },
+  });
+}

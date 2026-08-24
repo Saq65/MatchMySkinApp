@@ -16,9 +16,11 @@ import { PrimaryButton } from '../components/PrimaryButton';
 import { ProgressBar } from '../components/ProgressBar';
 import { fetchQuizOptions, type QuizOptions, type QuizProfile } from '../services/quizApi';
 import type { RootStackParamList } from '../navigation/types';
-import { colors } from '../theme/colors';
+import { useTheme } from '../context/ThemeContext';
+import type { ThemeColors } from '../theme/colors';
 import { rf, rh, rw } from '../theme/responsive';
 import { serifItalic } from '../theme/typography';
+import { useThemedStyles } from '../theme/useThemedStyles';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'Quiz'>;
 
@@ -130,6 +132,8 @@ function buildProfile(selections: Record<string, string[]>): QuizProfile {
 }
 
 export function QuizScreen({ navigation }: Props) {
+  const { colors } = useTheme();
+  const styles = useThemedStyles(colors, createStyles);
   const [steps, setSteps] = useState<QuizStep[] | null>(null);
   const [loadError, setLoadError] = useState(false);
   const [stepIndex, setStepIndex] = useState(0);
@@ -305,7 +309,7 @@ export function QuizScreen({ navigation }: Props) {
   );
 }
 
-const styles = StyleSheet.create({
+const createStyles = (colors: ThemeColors) => StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: colors.background,

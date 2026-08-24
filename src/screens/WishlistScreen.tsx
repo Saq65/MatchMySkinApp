@@ -6,10 +6,12 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { EmptyState } from '../components/EmptyState';
 import { ProductCard } from '../components/ProductCard';
 import { useShop } from '../context/ShopContext';
+import { useTheme } from '../context/ThemeContext';
 import type { MainTabParamList, RootStackParamList } from '../navigation/types';
-import { colors } from '../theme/colors';
+import type { ThemeColors } from '../theme/colors';
 import { rf } from '../theme/responsive';
 import { spacing } from '../theme/spacing';
+import { useThemedStyles } from '../theme/useThemedStyles';
 
 type Props = CompositeScreenProps<
   BottomTabScreenProps<MainTabParamList, 'Wishlist'>,
@@ -17,6 +19,8 @@ type Props = CompositeScreenProps<
 >;
 
 export function WishlistScreen({ navigation }: Props) {
+  const { colors } = useTheme();
+  const styles = useThemedStyles(colors, createStyles);
   const { width } = useWindowDimensions();
   const numColumns = width >= 700 ? 4 : width >= 500 ? 3 : 2;
   const { wishlist, isWishlisted, toggleWishlist } = useShop();
@@ -53,7 +57,7 @@ export function WishlistScreen({ navigation }: Props) {
   );
 }
 
-const styles = StyleSheet.create({
+const createStyles = (colors: ThemeColors) => StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: colors.background,

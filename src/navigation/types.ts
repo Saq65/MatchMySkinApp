@@ -16,9 +16,10 @@ export type RootStackParamList = {
   Signup: undefined;
   Main: NavigatorScreenParams<MainTabParamList>;
   ProductDetails: { product: Product };
-  Search: undefined;
+  Search: { photoUri?: string; photoType?: string; photoFileName?: string } | undefined;
   Orders: undefined;
   Settings: undefined;
+  PrivacyPolicy: undefined;
   Quiz: undefined;
   QuizResults: { profile: QuizProfile };
 };

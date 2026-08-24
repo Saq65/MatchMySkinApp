@@ -5,6 +5,7 @@ import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { LoginScreen } from '../screens/auth/LoginScreen';
 import { SignupScreen } from '../screens/auth/SignupScreen';
 import { OrdersScreen } from '../screens/OrdersScreen';
+import { PrivacyPolicyScreen } from '../screens/PrivacyPolicyScreen';
 import { ProductDetailsScreen } from '../screens/ProductDetailsScreen';
 import { QuizScreen } from '../screens/QuizScreen';
 import { ResultsScreen } from '../screens/ResultsScreen';
@@ -25,6 +26,7 @@ export function RootNavigator() {
       <Stack.Screen name="Search" component={SearchScreen} />
       <Stack.Screen name="Orders" component={OrdersScreen} />
       <Stack.Screen name="Settings" component={SettingsScreen} />
+      <Stack.Screen name="PrivacyPolicy" component={PrivacyPolicyScreen} />
       <Stack.Screen name="Quiz" component={QuizScreen} />
       <Stack.Screen name="QuizResults" component={ResultsScreen} />
     </Stack.Navigator>

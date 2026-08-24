@@ -2,13 +2,15 @@ import { Ionicons } from '@react-native-vector-icons/ionicons/static';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { StyleSheet } from 'react-native';
 import { useShop } from '../context/ShopContext';
+import { useTheme } from '../context/ThemeContext';
 import { HomeScreen } from '../screens/HomeScreen';
 import { ProductsScreen } from '../screens/ProductsScreen';
 import { ProfileScreen } from '../screens/ProfileScreen';
 import { WishlistScreen } from '../screens/WishlistScreen';
-import { colors } from '../theme/colors';
+import type { ThemeColors } from '../theme/colors';
 import type { IoniconName } from '../theme/icons';
 import { rf } from '../theme/responsive';
+import { useThemedStyles } from '../theme/useThemedStyles';
 import type { MainTabParamList } from './types';
 
 const Tab = createBottomTabNavigator<MainTabParamList>();
@@ -36,6 +38,8 @@ function TabIcon({
 }
 
 export function MainTabs() {
+  const { colors } = useTheme();
+  const styles = useThemedStyles(colors, createStyles);
   const { wishlist } = useShop();
 
   return (
@@ -72,10 +76,11 @@ export function MainTabs() {
   );
 }
 
-const styles = StyleSheet.create({
-  badge: {
-    backgroundColor: colors.primary,
-    fontSize: rf(11),
-    fontWeight: '700',
-  },
-});
+const createStyles = (colors: ThemeColors) =>
+  StyleSheet.create({
+    badge: {
+      backgroundColor: colors.primary,
+      fontSize: rf(11),
+      fontWeight: '700',
+    },
+  });

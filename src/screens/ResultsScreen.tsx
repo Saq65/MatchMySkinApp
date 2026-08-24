@@ -10,13 +10,17 @@ import { fetchRecommendedProducts, submitQuizResult } from '../services/quizApi'
 import { saveQuizProfile } from '../services/quizProfileStorage';
 import type { RootStackParamList } from '../navigation/types';
 import { productFromRoutine, type Product } from '../types/product';
-import { colors } from '../theme/colors';
+import { useTheme } from '../context/ThemeContext';
+import type { ThemeColors } from '../theme/colors';
 import { rf, rh, rw } from '../theme/responsive';
 import { spacing } from '../theme/spacing';
+import { useThemedStyles } from '../theme/useThemedStyles';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'QuizResults'>;
 
 export function ResultsScreen({ navigation, route }: Props) {
+  const { colors } = useTheme();
+  const styles = useThemedStyles(colors, createStyles);
   const { profile } = route.params;
   const { isWishlisted, toggleWishlist } = useShop();
   const [matches, setMatches] = useState<Product[] | null>(null);
@@ -99,7 +103,7 @@ export function ResultsScreen({ navigation, route }: Props) {
   );
 }
 
-const styles = StyleSheet.create({
+const createStyles = (colors: ThemeColors) => StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: colors.background,

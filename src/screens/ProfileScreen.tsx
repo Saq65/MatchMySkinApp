@@ -7,13 +7,15 @@ import { useCallback, useState } from 'react';
 import { ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useAuth } from '../context/AuthContext';
+import { useTheme } from '../context/ThemeContext';
 import type { QuizProfile } from '../services/quizApi';
 import { getStoredQuizProfile } from '../services/quizProfileStorage';
 import type { MainTabParamList, RootStackParamList } from '../navigation/types';
-import { colors } from '../theme/colors';
+import type { ThemeColors } from '../theme/colors';
 import type { IoniconName } from '../theme/icons';
 import { rf, rh, rw } from '../theme/responsive';
 import { radii, spacing } from '../theme/spacing';
+import { useThemedStyles } from '../theme/useThemedStyles';
 
 type Props = CompositeScreenProps<
   BottomTabScreenProps<MainTabParamList, 'Profile'>,
@@ -47,6 +49,8 @@ function skinProfileRows(profile: QuizProfile) {
 }
 
 export function ProfileScreen({ navigation }: Props) {
+  const { colors } = useTheme();
+  const styles = useThemedStyles(colors, createStyles);
   const { isLoggedIn, userName, logout } = useAuth();
   const [profile, setProfile] = useState<QuizProfile | null | undefined>(undefined);
 
@@ -151,7 +155,7 @@ export function ProfileScreen({ navigation }: Props) {
   );
 }
 
-const styles = StyleSheet.create({
+const createStyles = (colors: ThemeColors) => StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: colors.background,

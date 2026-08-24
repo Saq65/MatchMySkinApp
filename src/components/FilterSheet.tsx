@@ -11,9 +11,11 @@ import {
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import type { MatchesFilterState, MatchesFacets } from '../services/matchesFilters';
-import { colors } from '../theme/colors';
+import { useTheme } from '../context/ThemeContext';
+import type { ThemeColors } from '../theme/colors';
 import { rf, rh, rw } from '../theme/responsive';
 import { radii, spacing } from '../theme/spacing';
+import { useThemedStyles } from '../theme/useThemedStyles';
 
 type Category = 'brand' | 'productType' | 'price' | 'score';
 
@@ -33,6 +35,8 @@ type Props = {
 };
 
 export function FilterSheet({ visible, facets, value, onApply, onClose }: Props) {
+  const { colors } = useTheme();
+  const styles = useThemedStyles(colors, createStyles);
   const insets = useSafeAreaInsets();
   const [activeCategory, setActiveCategory] = useState<Category>('brand');
   const [draft, setDraft] = useState<MatchesFilterState>(value);
@@ -202,6 +206,8 @@ function CheckRow({
   checked: boolean;
   onPress: () => void;
 }) {
+  const { colors } = useTheme();
+  const styles = useThemedStyles(colors, createStyles);
   return (
     <TouchableOpacity style={styles.checkRow} onPress={onPress} activeOpacity={0.7}>
       <View style={[styles.checkbox, checked && styles.checkboxChecked]}>
@@ -214,138 +220,139 @@ function CheckRow({
   );
 }
 
-const styles = StyleSheet.create({
-  backdrop: {
-    flex: 1,
-    backgroundColor: 'rgba(0,0,0,0.35)',
-    justifyContent: 'flex-end',
-  },
-  sheet: {
-    height: '75%',
-    backgroundColor: colors.surface,
-    borderTopLeftRadius: radii.lg,
-    borderTopRightRadius: radii.lg,
-    overflow: 'hidden',
-  },
-  header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingHorizontal: spacing.lg,
-    paddingVertical: spacing.md,
-    borderBottomWidth: 1,
-    borderBottomColor: colors.border,
-  },
-  title: {
-    fontSize: rf(17),
-    fontWeight: '700',
-    color: colors.text,
-  },
-  resetLink: {
-    fontSize: rf(13),
-    fontWeight: '600',
-    color: colors.primaryDark,
-  },
-  body: {
-    flex: 1,
-    flexDirection: 'row',
-  },
-  tabs: {
-    width: rw(100),
-    backgroundColor: colors.background,
-  },
-  tab: {
-    paddingVertical: rh(16),
-    paddingHorizontal: spacing.md,
-  },
-  tabActive: {
-    backgroundColor: colors.surface,
-  },
-  tabLabel: {
-    fontSize: rf(13),
-    fontWeight: '600',
-    color: colors.textMuted,
-  },
-  tabLabelActive: {
-    color: colors.text,
-    fontWeight: '700',
-  },
-  panel: {
-    flex: 1,
-    paddingHorizontal: spacing.md,
-    paddingTop: spacing.sm,
-  },
-  searchBar: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: colors.background,
-    borderRadius: radii.sm,
-    paddingHorizontal: spacing.sm,
-    marginBottom: spacing.sm,
-    gap: spacing.xs,
-  },
-  searchInput: {
-    flex: 1,
-    minWidth: 0,
-    paddingVertical: rh(8),
-    fontSize: rf(13),
-    color: colors.text,
-  },
-  checkRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingVertical: rh(10),
-    gap: spacing.sm,
-  },
-  checkbox: {
-    width: rw(18),
-    height: rw(18),
-    borderRadius: rw(4),
-    borderWidth: 1.5,
-    borderColor: colors.border,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  checkboxChecked: {
-    backgroundColor: colors.text,
-    borderColor: colors.text,
-  },
-  checkRowLabel: {
-    fontSize: rf(13),
-    color: colors.text,
-    flexShrink: 1,
-  },
-  footer: {
-    flexDirection: 'row',
-    gap: spacing.sm,
-    paddingHorizontal: spacing.lg,
-    paddingTop: spacing.md,
-    borderTopWidth: 1,
-    borderTopColor: colors.border,
-  },
-  closeButton: {
-    flex: 1,
-    borderWidth: 1.5,
-    borderColor: colors.primary,
-    borderRadius: radii.lg,
-    paddingVertical: rh(14),
-    alignItems: 'center',
-  },
-  closeButtonText: {
-    fontSize: rf(14),
-    fontWeight: '700',
-    color: colors.primary,
-  },
-  applyButton: {
-    flex: 1,
-    backgroundColor: colors.primary,
-    borderRadius: radii.lg,
-    paddingVertical: rh(14),
-    alignItems: 'center',
-  },
-  applyButtonText: {
-    fontSize: rf(14),
-    fontWeight: '700',
-    color: colors.surface,
-  },
-});
+const createStyles = (colors: ThemeColors) =>
+  StyleSheet.create({
+    backdrop: {
+      flex: 1,
+      backgroundColor: 'rgba(0,0,0,0.35)',
+      justifyContent: 'flex-end',
+    },
+    sheet: {
+      height: '75%',
+      backgroundColor: colors.surface,
+      borderTopLeftRadius: radii.lg,
+      borderTopRightRadius: radii.lg,
+      overflow: 'hidden',
+    },
+    header: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+      paddingHorizontal: spacing.lg,
+      paddingVertical: spacing.md,
+      borderBottomWidth: 1,
+      borderBottomColor: colors.border,
+    },
+    title: {
+      fontSize: rf(17),
+      fontWeight: '700',
+      color: colors.text,
+    },
+    resetLink: {
+      fontSize: rf(13),
+      fontWeight: '600',
+      color: colors.primaryDark,
+    },
+    body: {
+      flex: 1,
+      flexDirection: 'row',
+    },
+    tabs: {
+      width: rw(100),
+      backgroundColor: colors.background,
+    },
+    tab: {
+      paddingVertical: rh(16),
+      paddingHorizontal: spacing.md,
+    },
+    tabActive: {
+      backgroundColor: colors.surface,
+    },
+    tabLabel: {
+      fontSize: rf(13),
+      fontWeight: '600',
+      color: colors.textMuted,
+    },
+    tabLabelActive: {
+      color: colors.text,
+      fontWeight: '700',
+    },
+    panel: {
+      flex: 1,
+      paddingHorizontal: spacing.md,
+      paddingTop: spacing.sm,
+    },
+    searchBar: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      backgroundColor: colors.background,
+      borderRadius: radii.sm,
+      paddingHorizontal: spacing.sm,
+      marginBottom: spacing.sm,
+      gap: spacing.xs,
+    },
+    searchInput: {
+      flex: 1,
+      minWidth: 0,
+      paddingVertical: rh(8),
+      fontSize: rf(13),
+      color: colors.text,
+    },
+    checkRow: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      paddingVertical: rh(10),
+      gap: spacing.sm,
+    },
+    checkbox: {
+      width: rw(18),
+      height: rw(18),
+      borderRadius: rw(4),
+      borderWidth: 1.5,
+      borderColor: colors.border,
+      alignItems: 'center',
+      justifyContent: 'center',
+    },
+    checkboxChecked: {
+      backgroundColor: colors.text,
+      borderColor: colors.text,
+    },
+    checkRowLabel: {
+      fontSize: rf(13),
+      color: colors.text,
+      flexShrink: 1,
+    },
+    footer: {
+      flexDirection: 'row',
+      gap: spacing.sm,
+      paddingHorizontal: spacing.lg,
+      paddingTop: spacing.md,
+      borderTopWidth: 1,
+      borderTopColor: colors.border,
+    },
+    closeButton: {
+      flex: 1,
+      borderWidth: 1.5,
+      borderColor: colors.primary,
+      borderRadius: radii.lg,
+      paddingVertical: rh(14),
+      alignItems: 'center',
+    },
+    closeButtonText: {
+      fontSize: rf(14),
+      fontWeight: '700',
+      color: colors.primary,
+    },
+    applyButton: {
+      flex: 1,
+      backgroundColor: colors.primary,
+      borderRadius: radii.lg,
+      paddingVertical: rh(14),
+      alignItems: 'center',
+    },
+    applyButtonText: {
+      fontSize: rf(14),
+      fontWeight: '700',
+      color: colors.surface,
+    },
+  });

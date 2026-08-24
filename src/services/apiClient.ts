@@ -1,4 +1,4 @@
-export const API_BASE_URL = 'https://matchmyskin.roopsee.com/api';
+export const API_BASE_URL = 'https://roopsee.com/api';
 
 export class ApiError extends Error {
   status: number;
@@ -17,6 +17,10 @@ type RequestOptions = {
   query?: Record<string, string | number | boolean | string[] | undefined>;
   timeoutMs?: number;
 };
+
+function isFormData(body: unknown): body is FormData {
+  return typeof FormData !== 'undefined' && body instanceof FormData;
+}
 
 function buildQueryString(query: RequestOptions['query']): string {
   if (!query) {
@@ -44,13 +48,14 @@ export async function apiRequest<T>(path: string, options: RequestOptions = {}):
   const timeout = setTimeout(() => controller.abort(), timeoutMs);
 
   try {
+    const formData = isFormData(body);
     const response = await fetch(`${API_BASE_URL}${path}${buildQueryString(query)}`, {
       method,
       headers: {
-        'Content-Type': 'application/json',
+        ...(formData ? {} : { 'Content-Type': 'application/json' }),
         ...(token ? { Authorization: `Bearer ${token}` } : {}),
       },
-      body: body !== undefined ? JSON.stringify(body) : undefined,
+      body: formData ? body : body !== undefined ? JSON.stringify(body) : undefined,
       signal: controller.signal,
     });
 

@@ -1,9 +1,11 @@
 import { Ionicons } from '@react-native-vector-icons/ionicons/static';
 import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
-import { colors } from '../theme/colors';
+import { useTheme } from '../context/ThemeContext';
+import type { ThemeColors } from '../theme/colors';
 import type { IoniconName } from '../theme/icons';
 import { rf, rw } from '../theme/responsive';
 import { spacing } from '../theme/spacing';
+import { useThemedStyles } from '../theme/useThemedStyles';
 
 type Props = {
   title: string;
@@ -13,6 +15,9 @@ type Props = {
 };
 
 export function ScreenHeader({ title, onBack, rightIcon, onRightPress }: Props) {
+  const { colors } = useTheme();
+  const styles = useThemedStyles(colors, createStyles);
+
   return (
     <View style={styles.container}>
       <View style={styles.side}>
@@ -44,24 +49,25 @@ export function ScreenHeader({ title, onBack, rightIcon, onRightPress }: Props) 
   );
 }
 
-const styles = StyleSheet.create({
-  container: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingHorizontal: spacing.lg,
-    paddingVertical: spacing.md,
-  },
-  side: {
-    width: rw(32),
-  },
-  rightSide: {
-    alignItems: 'flex-end',
-  },
-  title: {
-    flex: 1,
-    fontSize: rf(18),
-    fontWeight: '700',
-    color: colors.text,
-    textAlign: 'center',
-  },
-});
+const createStyles = (colors: ThemeColors) =>
+  StyleSheet.create({
+    container: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      paddingHorizontal: spacing.lg,
+      paddingVertical: spacing.md,
+    },
+    side: {
+      width: rw(32),
+    },
+    rightSide: {
+      alignItems: 'flex-end',
+    },
+    title: {
+      flex: 1,
+      fontSize: rf(18),
+      fontWeight: '700',
+      color: colors.text,
+      textAlign: 'center',
+    },
+  });

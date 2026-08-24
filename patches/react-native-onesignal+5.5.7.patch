@@ -1,0 +1,13 @@
+diff --git a/node_modules/react-native-onesignal/android/build.gradle b/node_modules/react-native-onesignal/android/build.gradle
+index fa62003..ac13382 100644
+--- a/node_modules/react-native-onesignal/android/build.gradle
++++ b/node_modules/react-native-onesignal/android/build.gradle
+@@ -29,7 +29,7 @@ android {
+     }
+     buildTypes {
+         release {
+-            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
++            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+         }
+     }
+ 

@@ -1,9 +1,14 @@
 import { Ionicons } from '@react-native-vector-icons/ionicons/static';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
   ActivityIndicator,
   Image,
+  type ImageSourcePropType,
+  type LayoutChangeEvent,
+  type NativeSyntheticEvent,
+  type NativeScrollEvent,
+  type ScrollViewInstance,
   Linking,
   RefreshControl,
   ScrollView,
@@ -13,13 +18,19 @@ import {
   View,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { ProductCard } from '../components/ProductCard';
 import { ScreenHeader } from '../components/ScreenHeader';
 import { useShop } from '../context/ShopContext';
+import { useTheme } from '../context/ThemeContext';
 import { fetchProductOffers, type ProductOffer } from '../services/offersApi';
+import { fetchRecommendedProducts } from '../services/quizApi';
+import { getStoredQuizProfile } from '../services/quizProfileStorage';
 import type { RootStackParamList } from '../navigation/types';
-import { colors } from '../theme/colors';
+import { productFromRoutine, type Product } from '../types/product';
+import type { ThemeColors } from '../theme/colors';
 import { rf, rh, rw } from '../theme/responsive';
 import { radii, spacing } from '../theme/spacing';
+import { useThemedStyles } from '../theme/useThemedStyles';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'ProductDetails'>;
 
@@ -27,16 +38,96 @@ function titleCase(value: string): string {
   return value.replace(/\b\w/g, char => char.toUpperCase());
 }
 
+const ROOPSEE_SITE_URL = 'https://roopsee.com';
+
+const MAX_GALLERY_IMAGES = 4;
+const GALLERY_AUTOPLAY_INTERVAL_MS = 3500;
+
+const RETAILER_LOGOS: Partial<Record<string, ImageSourcePropType>> = {
+  amazon: require('../assets/icons/amazon.png'),
+  nykaa: require('../assets/icons/nyka.webp'),
+  tira: require('../assets/icons/tiira.png'),
+};
+
+function RetailerLabel({ site }: { site: string }) {
+  const { colors } = useTheme();
+  const styles = useThemedStyles(colors, createStyles);
+  const logo = RETAILER_LOGOS[site.toLowerCase()];
+  if (logo) {
+    return <Image source={logo} style={styles.retailerLogo} resizeMode="cover" />;
+  }
+  return <Text style={styles.offerSite}>{titleCase(site)}</Text>;
+}
+
+function RoopseeLabel() {
+  const { colors } = useTheme();
+  const styles = useThemedStyles(colors, createStyles);
+  return (
+    <Text style={styles.roopseeWordmark}>
+      roopsee<Text style={styles.roopseeWordmarkDot}>.</Text>
+    </Text>
+  );
+}
+
 export function ProductDetailsScreen({ route, navigation }: Props) {
+  const { colors } = useTheme();
+  const styles = useThemedStyles(colors, createStyles);
   const { product } = route.params;
   const { isWishlisted, toggleWishlist } = useShop();
-  const [imageFailed, setImageFailed] = useState(false);
+  const [failedImages, setFailedImages] = useState<Set<string>>(new Set());
   const [offers, setOffers] = useState<ProductOffer[] | null>(null);
   const [offersError, setOffersError] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
+  const [similar, setSimilar] = useState<Product[] | null>(null);
+  const [galleryWidth, setGalleryWidth] = useState(0);
+  const [galleryActiveIndex, setGalleryActiveIndex] = useState(0);
+  const galleryScrollRef = useRef<ScrollViewInstance>(null);
 
   const wishlisted = isWishlisted(product.id);
-  const showImage = product.imageUrl && !imageFailed;
+
+  const images = useMemo(() => {
+    const seen = new Set<string>();
+    const gallery: string[] = [];
+    const add = (url: string | undefined) => {
+      if (url && !seen.has(url)) {
+        seen.add(url);
+        gallery.push(url);
+      }
+    };
+    add(product.imageUrl);
+    offers?.forEach(offer => {
+      add(offer.image_url);
+      offer.image_urls?.forEach(add);
+    });
+    return gallery.slice(0, MAX_GALLERY_IMAGES);
+  }, [product.imageUrl, offers]);
+
+  const markImageFailed = useCallback((url: string) => {
+    setFailedImages(prev => (prev.has(url) ? prev : new Set(prev).add(url)));
+  }, []);
+
+  const onGalleryLayout = useCallback((event: LayoutChangeEvent) => {
+    setGalleryWidth(event.nativeEvent.layout.width);
+  }, []);
+
+  const onGalleryScroll = useCallback(
+    (event: NativeSyntheticEvent<NativeScrollEvent>) => {
+      if (!galleryWidth) return;
+      const page = Math.round(event.nativeEvent.contentOffset.x / galleryWidth);
+      setGalleryActiveIndex(page);
+    },
+    [galleryWidth],
+  );
+
+  useEffect(() => {
+    if (images.length <= 1 || !galleryWidth) return;
+    const timer = setTimeout(() => {
+      const nextIndex = (galleryActiveIndex + 1) % images.length;
+      galleryScrollRef.current?.scrollTo({ x: nextIndex * galleryWidth, animated: true });
+      setGalleryActiveIndex(nextIndex);
+    }, GALLERY_AUTOPLAY_INTERVAL_MS);
+    return () => clearTimeout(timer);
+  }, [galleryActiveIndex, galleryWidth, images.length]);
 
   useEffect(() => {
     if (!product.productUid) {
@@ -73,6 +164,29 @@ export function ProductDetailsScreen({ route, navigation }: Props) {
     }
   }, [product.productUid]);
 
+  useEffect(() => {
+    let cancelled = false;
+    getStoredQuizProfile()
+      .then(profile => {
+        if (!profile) return null;
+        return fetchRecommendedProducts(profile, 409);
+      })
+      .then(items => {
+        if (cancelled || !items) return;
+        const matches = items
+          .map(productFromRoutine)
+          .filter(item => item.id !== product.id && item.category === product.category)
+          .slice(0, 10);
+        setSimilar(matches);
+      })
+      .catch(() => {
+        if (!cancelled) setSimilar([]);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [product.id, product.category]);
+
   return (
     <SafeAreaView style={styles.container} edges={['top', 'bottom']}>
       <ScreenHeader
@@ -94,18 +208,46 @@ export function ProductDetailsScreen({ route, navigation }: Props) {
           />
         }
       >
-        <View style={styles.imageArea}>
-          {showImage ? (
-            <Image
-              source={{ uri: product.imageUrl }}
-              style={styles.image}
-              resizeMode="contain"
-              onError={() => setImageFailed(true)}
-            />
+        <View style={styles.imageArea} onLayout={onGalleryLayout}>
+          {images.length > 0 ? (
+            <ScrollView
+              ref={galleryScrollRef}
+              horizontal
+              pagingEnabled
+              showsHorizontalScrollIndicator={false}
+              onScroll={onGalleryScroll}
+              scrollEventThrottle={16}
+            >
+              {images.map(url => (
+                <View key={url} style={[styles.gallerySlide, { width: galleryWidth || undefined }]}>
+                  {!failedImages.has(url) ? (
+                    <Image
+                      source={{ uri: url }}
+                      style={styles.image}
+                      resizeMode="contain"
+                      onError={() => markImageFailed(url)}
+                    />
+                  ) : (
+                    <Ionicons name="flask-outline" size={rw(64)} color={colors.textMuted} />
+                  )}
+                </View>
+              ))}
+            </ScrollView>
           ) : (
             <Ionicons name="flask-outline" size={rw(64)} color={colors.textMuted} />
           )}
         </View>
+
+        {images.length > 1 && (
+          <View style={styles.galleryDots}>
+            {images.map((url, index) => (
+              <View
+                key={url}
+                style={[styles.galleryDot, index === galleryActiveIndex && styles.galleryDotActive]}
+              />
+            ))}
+          </View>
+        )}
 
         {product.matchScore !== undefined && (
           <View style={styles.matchBadge}>
@@ -147,7 +289,7 @@ export function ProductDetailsScreen({ route, navigation }: Props) {
                 activeOpacity={0.85}
               >
                 <View style={styles.offerInfo}>
-                  <Text style={styles.offerSite}>{titleCase(offer.site)}</Text>
+                  <RetailerLabel site={offer.site} />
                   {index === 0 && <Text style={styles.cheapestTag}>Best price</Text>}
                 </View>
                 <Text style={styles.offerPrice}>₹{offer.price.toFixed(0)}</Text>
@@ -164,7 +306,11 @@ export function ProductDetailsScreen({ route, navigation }: Props) {
             activeOpacity={0.85}
           >
             <View style={styles.offerInfo}>
-              <Text style={styles.offerSite}>{product.site ? titleCase(product.site) : 'Retailer'}</Text>
+              {product.site ? (
+                <RetailerLabel site={product.site} />
+              ) : (
+                <Text style={styles.offerSite}>Retailer</Text>
+              )}
             </View>
             <Text style={styles.offerPrice}>₹{product.price.toFixed(0)}</Text>
             <View style={styles.buyButton}>
@@ -173,6 +319,24 @@ export function ProductDetailsScreen({ route, navigation }: Props) {
           </TouchableOpacity>
         ) : (
           <Text style={styles.helperText}>No purchase link available for this product.</Text>
+        )}
+
+        {product.productUid && (
+          <TouchableOpacity
+            style={styles.offerRow}
+            onPress={() => Linking.openURL(`${ROOPSEE_SITE_URL}/products/${product.productUid}`)}
+            activeOpacity={0.85}
+          >
+            <View style={styles.offerInfo}>
+              <RoopseeLabel />
+            </View>
+            {offers && offers.length > 0 && (
+              <Text style={styles.offerPrice}>₹{offers[0].price.toFixed(0)}</Text>
+            )}
+            <View style={styles.buyButton}>
+              <Text style={styles.buyButtonText}>View</Text>
+            </View>
+          </TouchableOpacity>
         )}
 
         {product.heroIngredient && (
@@ -195,12 +359,34 @@ export function ProductDetailsScreen({ route, navigation }: Props) {
             <Text style={styles.description}>{product.usageInstructions}</Text>
           </>
         )}
+
+        {similar && similar.length > 0 && (
+          <>
+            <Text style={styles.sectionHeading}>Similar products</Text>
+            <ScrollView
+              horizontal
+              showsHorizontalScrollIndicator={false}
+              contentContainerStyle={styles.similarRow}
+            >
+              {similar.map(item => (
+                <View key={item.id} style={styles.similarItem}>
+                  <ProductCard
+                    product={item}
+                    wishlisted={isWishlisted(item.id)}
+                    onPress={() => navigation.push('ProductDetails', { product: item })}
+                    onToggleWishlist={() => toggleWishlist(item)}
+                  />
+                </View>
+              ))}
+            </ScrollView>
+          </>
+        )}
       </ScrollView>
     </SafeAreaView>
   );
 }
 
-const styles = StyleSheet.create({
+const createStyles = (colors: ThemeColors) => StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: colors.background,
@@ -221,6 +407,27 @@ const styles = StyleSheet.create({
   image: {
     width: '100%',
     height: '100%',
+  },
+  gallerySlide: {
+    height: '100%',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  galleryDots: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    gap: rw(6),
+    marginBottom: spacing.md,
+  },
+  galleryDot: {
+    width: rw(6),
+    height: rw(6),
+    borderRadius: rw(3),
+    backgroundColor: colors.border,
+  },
+  galleryDotActive: {
+    backgroundColor: colors.primary,
+    width: rw(16),
   },
   matchBadge: {
     flexDirection: 'row',
@@ -311,6 +518,19 @@ const styles = StyleSheet.create({
     fontWeight: '700',
     color: colors.text,
   },
+  retailerLogo: {
+    width: rw(60),
+    height: rw(25),
+    alignSelf: 'flex-start',
+  },
+  roopseeWordmark: {
+    fontSize: rf(17),
+    fontWeight: '800',
+    color: colors.text,
+  },
+  roopseeWordmarkDot: {
+    color: colors.primary,
+  },
   cheapestTag: {
     fontSize: rf(11),
     fontWeight: '700',
@@ -338,5 +558,12 @@ const styles = StyleSheet.create({
     fontSize: rf(14),
     color: colors.textMuted,
     lineHeight: rf(21),
+  },
+  similarRow: {
+    gap: spacing.md,
+    paddingBottom: spacing.xs,
+  },
+  similarItem: {
+    width: rw(150),
   },
 });

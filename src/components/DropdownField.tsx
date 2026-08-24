@@ -1,9 +1,11 @@
 import { Ionicons } from '@react-native-vector-icons/ionicons/static';
 import { Modal, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { colors } from '../theme/colors';
+import { useTheme } from '../context/ThemeContext';
+import type { ThemeColors } from '../theme/colors';
 import { rf, rh, rw } from '../theme/responsive';
 import { radii, spacing } from '../theme/spacing';
+import { useThemedStyles } from '../theme/useThemedStyles';
 
 type Props = {
   placeholder: string;
@@ -26,6 +28,8 @@ export function DropdownField({
   onOpen,
   onClose,
 }: Props) {
+  const { colors } = useTheme();
+  const styles = useThemedStyles(colors, createStyles);
   const insets = useSafeAreaInsets();
   return (
     <>
@@ -64,61 +68,62 @@ export function DropdownField({
   );
 }
 
-const styles = StyleSheet.create({
-  field: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    backgroundColor: colors.surface,
-    borderWidth: 1.5,
-    borderColor: colors.border,
-    borderRadius: radii.md,
-    paddingHorizontal: spacing.md,
-    paddingVertical: rh(16),
-  },
-  fieldText: {
-    fontSize: rf(16),
-    fontWeight: '500',
-    color: colors.text,
-  },
-  placeholder: {
-    color: colors.textMuted,
-    fontWeight: '400',
-  },
-  backdrop: {
-    flex: 1,
-    backgroundColor: 'rgba(0,0,0,0.35)',
-    justifyContent: 'flex-end',
-  },
-  sheet: {
-    backgroundColor: colors.surface,
-    borderTopLeftRadius: radii.lg,
-    borderTopRightRadius: radii.lg,
-    paddingHorizontal: spacing.lg,
-    paddingTop: spacing.md,
-    paddingBottom: spacing.xl,
-  },
-  sheetTitle: {
-    fontSize: rf(13),
-    fontWeight: '700',
-    color: colors.textMuted,
-    textTransform: 'uppercase',
-    letterSpacing: 0.5,
-    marginBottom: spacing.sm,
-  },
-  option: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingVertical: rh(14),
-    borderBottomWidth: 1,
-    borderBottomColor: colors.border,
-  },
-  optionText: {
-    fontSize: rf(16),
-    color: colors.text,
-  },
-  optionTextSelected: {
-    fontWeight: '700',
-  },
-});
+const createStyles = (colors: ThemeColors) =>
+  StyleSheet.create({
+    field: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+      backgroundColor: colors.surface,
+      borderWidth: 1.5,
+      borderColor: colors.border,
+      borderRadius: radii.md,
+      paddingHorizontal: spacing.md,
+      paddingVertical: rh(16),
+    },
+    fieldText: {
+      fontSize: rf(16),
+      fontWeight: '500',
+      color: colors.text,
+    },
+    placeholder: {
+      color: colors.textMuted,
+      fontWeight: '400',
+    },
+    backdrop: {
+      flex: 1,
+      backgroundColor: 'rgba(0,0,0,0.35)',
+      justifyContent: 'flex-end',
+    },
+    sheet: {
+      backgroundColor: colors.surface,
+      borderTopLeftRadius: radii.lg,
+      borderTopRightRadius: radii.lg,
+      paddingHorizontal: spacing.lg,
+      paddingTop: spacing.md,
+      paddingBottom: spacing.xl,
+    },
+    sheetTitle: {
+      fontSize: rf(13),
+      fontWeight: '700',
+      color: colors.textMuted,
+      textTransform: 'uppercase',
+      letterSpacing: 0.5,
+      marginBottom: spacing.sm,
+    },
+    option: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+      paddingVertical: rh(14),
+      borderBottomWidth: 1,
+      borderBottomColor: colors.border,
+    },
+    optionText: {
+      fontSize: rf(16),
+      color: colors.text,
+    },
+    optionTextSelected: {
+      fontWeight: '700',
+    },
+  });

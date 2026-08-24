@@ -1,6 +1,8 @@
 import { StyleSheet, View } from 'react-native';
-import { colors } from '../theme/colors';
+import { useTheme } from '../context/ThemeContext';
+import type { ThemeColors } from '../theme/colors';
 import { rh, rw } from '../theme/responsive';
+import { useThemedStyles } from '../theme/useThemedStyles';
 
 type Props = {
   current: number;
@@ -8,6 +10,8 @@ type Props = {
 };
 
 export function ProgressBar({ current, total }: Props) {
+  const { colors } = useTheme();
+  const styles = useThemedStyles(colors, createStyles);
   const progress = total > 0 ? current / total : 0;
 
   return (
@@ -17,16 +21,17 @@ export function ProgressBar({ current, total }: Props) {
   );
 }
 
-const styles = StyleSheet.create({
-  track: {
-    height: rh(6),
-    borderRadius: rw(3),
-    backgroundColor: colors.progressTrack,
-    overflow: 'hidden',
-  },
-  fill: {
-    height: '100%',
-    borderRadius: rw(3),
-    backgroundColor: colors.primary,
-  },
-});
+const createStyles = (colors: ThemeColors) =>
+  StyleSheet.create({
+    track: {
+      height: rh(6),
+      borderRadius: rw(3),
+      backgroundColor: colors.progressTrack,
+      overflow: 'hidden',
+    },
+    fill: {
+      height: '100%',
+      borderRadius: rw(3),
+      backgroundColor: colors.primary,
+    },
+  });

@@ -1,10 +1,15 @@
 import { Ionicons } from '@react-native-vector-icons/ionicons/static';
 import { OTPWidget } from '@msg91comm/sendotp-react-native';
+import {
+  GoogleSignin,
+  isErrorWithCode,
+  isSuccessResponse,
+  statusCodes,
+} from '@react-native-google-signin/google-signin';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { useState } from 'react';
 import {
   ActivityIndicator,
-  Alert,
   KeyboardAvoidingView,
   Platform,
   ScrollView,
@@ -16,11 +21,13 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useAuth } from '../../context/AuthContext';
-import { exchangeMsg91Token } from '../../services/authApi';
+import { useTheme } from '../../context/ThemeContext';
+import { exchangeGoogleToken, exchangeMsg91Token } from '../../services/authApi';
 import type { RootStackParamList } from '../../navigation/types';
-import { colors } from '../../theme/colors';
+import type { ThemeColors } from '../../theme/colors';
 import { rf, rh, rw } from '../../theme/responsive';
 import { radii, spacing } from '../../theme/spacing';
+import { useThemedStyles } from '../../theme/useThemedStyles';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'Login'>;
 
@@ -35,6 +42,8 @@ type Msg91Response = {
 type Step = 'phone' | 'otp';
 
 export function LoginScreen({ navigation }: Props) {
+  const { colors } = useTheme();
+  const styles = useThemedStyles(colors, createStyles);
   const { login } = useAuth();
   const [step, setStep] = useState<Step>('phone');
   const [phoneDigits, setPhoneDigits] = useState('');
@@ -42,6 +51,7 @@ export function LoginScreen({ navigation }: Props) {
   const [reqId, setReqId] = useState<string | null>(null);
   const [sending, setSending] = useState(false);
   const [verifying, setVerifying] = useState(false);
+  const [googleLoading, setGoogleLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   const phoneValid = phoneDigits.length === 10;
@@ -102,11 +112,34 @@ export function LoginScreen({ navigation }: Props) {
     }
   };
 
-  const handleGoogle = () => {
-    Alert.alert(
-      'Google sign-in coming soon',
-      "This needs a Google OAuth client to be set up first — it's not configured yet.",
-    );
+  const handleGoogle = async () => {
+    if (googleLoading) return;
+    setError(null);
+    setGoogleLoading(true);
+    try {
+      await GoogleSignin.hasPlayServices();
+      const response = await GoogleSignin.signIn();
+      if (!isSuccessResponse(response)) {
+        // User closed the picker — not an error, just no-op.
+        return;
+      }
+      const idToken = response.data.idToken;
+      if (!idToken) {
+        setError("Couldn't sign in with Google. Please try again.");
+        return;
+      }
+      const result = await exchangeGoogleToken(idToken);
+      login({ token: result.token, refreshToken: result.refresh_token, user: result.user });
+      navigation.navigate('Main', { screen: 'Home' });
+    } catch (err) {
+      if (isErrorWithCode(err) && err.code === statusCodes.SIGN_IN_CANCELLED) {
+        return;
+      }
+      console.warn('[GoogleSignIn] failed:', isErrorWithCode(err) ? err.code : String(err), err);
+      setError("Couldn't sign in with Google. Check your connection.");
+    } finally {
+      setGoogleLoading(false);
+    }
   };
 
   const goBack = () => {
@@ -195,10 +228,17 @@ export function LoginScreen({ navigation }: Props) {
                 <TouchableOpacity
                   style={styles.googleButton}
                   onPress={handleGoogle}
+                  disabled={googleLoading}
                   activeOpacity={0.8}
                 >
-                  <Ionicons name="logo-google" size={rw(18)} color="#DB4437" />
-                  <Text style={styles.googleButtonText}>Continue with Google</Text>
+                  {googleLoading ? (
+                    <ActivityIndicator color={colors.text} />
+                  ) : (
+                    <>
+                      <Ionicons name="logo-google" size={rw(18)} color="#DB4437" />
+                      <Text style={styles.googleButtonText}>Continue with Google</Text>
+                    </>
+                  )}
                 </TouchableOpacity>
 
                 <View style={styles.trustRow}>
@@ -256,7 +296,7 @@ export function LoginScreen({ navigation }: Props) {
   );
 }
 
-const styles = StyleSheet.create({
+const createStyles = (colors: ThemeColors) => StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: colors.background,

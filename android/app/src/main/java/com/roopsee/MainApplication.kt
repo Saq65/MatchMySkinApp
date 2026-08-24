@@ -1,4 +1,4 @@
-package com.matchmyskin
+package com.roopsee
 
 import android.app.Application
 import com.facebook.react.PackageList
